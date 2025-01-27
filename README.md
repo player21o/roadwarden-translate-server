@@ -8,7 +8,7 @@ To run:
 git clone https://github.com/player21o/roadwarden-translate-server.git
 ```
 
-2. Install modules:
+2. `cd` into the repository and install modules:
 
 ```
 npm i
