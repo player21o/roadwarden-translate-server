@@ -1,7 +1,7 @@
 import { prot } from "../server";
 import { Status, Tracks } from "../packets";
 import { usersSessionsTable, usersTable } from "../../db/schema/schema";
-import { UserDBQuery, WsType } from "../ws_type";
+import { WsType } from "../ws_type";
 import { db } from "../../db/db";
 import { eq } from "drizzle-orm";
 import fetch from "node-fetch";

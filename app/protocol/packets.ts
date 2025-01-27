@@ -22,10 +22,6 @@ export type TrackToPacketMap = {
   [Tracks.file]: GetFilePacket;
 };
 
-type ReverseMap<T extends Record<keyof T, keyof any>> = {
-  [K in keyof T as T[K]]: K;
-};
-
 export type TrackToPacket<T extends Tracks> = TrackToPacketMap[T];
 
 export type extractGeneric<Type> = Type extends Packet<infer X> ? X : never;

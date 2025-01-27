@@ -1,5 +1,5 @@
 import { beachFile, fileSchemas } from "./db/schema/files";
-import { FilePacket, Status, Tracks } from "./protocol/packets";
+import { Status, Tracks } from "./protocol/packets";
 import { prot } from "./protocol/server";
 import { db } from "./db/db";
 import { register_tracks } from "./protocol/tracks/tracks_register";
