@@ -2,28 +2,30 @@ import { prot } from "../server";
 import { Status, Tracks } from "../packets";
 import { usersSessionsTable, usersTable } from "../../db/schema/schema";
 import { UserDBQuery, WsType } from "../ws_type";
-import { db } from "../../main";
+import { db } from "../../db/db";
 import { eq } from "drizzle-orm";
 import fetch from "node-fetch";
 
-prot.listen(
-  Tracks.login,
-  async (packet, ws) => {
-    const user = await ws.getUser();
+export function login_listener() {
+  prot.listen(
+    Tracks.login,
+    async (packet, ws) => {
+      const user = await ws.getUser();
 
-    if (user != null) {
-      packet.answer!({ status: Status.failure }); //user is logged in, but we need user logged out
-    } else {
-      if (packet.method == "session" && packet.token != undefined) {
-        //if user logs with a session
-        packet.answer!({
-          status: await login_through_session(packet.token, ws),
-        });
+      if (user != null) {
+        packet.answer!({ status: Status.failure }); //user is logged in, but we need user logged out
+      } else {
+        if (packet.method == "session" && packet.token != undefined) {
+          //if user logs with a session
+          packet.answer!({
+            status: await login_through_session(packet.token, ws),
+          });
+        }
       }
-    }
-  },
-  10
-);
+    },
+    10
+  );
+}
 
 const get_session = async (token: string) => {
   return db
