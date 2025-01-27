@@ -1,17 +1,12 @@
 import { beachFile, fileSchemas } from "./db/schema/files";
 import { FilePacket, Status, Tracks } from "./protocol/packets";
 import { prot } from "./protocol/server";
-import { WsType } from "./protocol/ws_type";
+import { db } from "./db/db";
 
-prot.listen(Tracks.user, (packet, ws: WsType) => {
+prot.listen(Tracks.user, (packet, ws) => {
   console.log(packet);
   packet.answer!({ status: Status.success });
 });
-
-import "dotenv/config";
-import { drizzle } from "drizzle-orm/node-postgres";
-
-export const db = drizzle(process.env.DATABASE_URL!);
 
 /*
 

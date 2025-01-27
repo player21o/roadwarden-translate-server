@@ -1,5 +1,5 @@
 import { WebSocket } from "ws";
-import { db } from "../main";
+import { db } from "../db/db";
 import { usersSessionsTable, usersTable } from "../db/schema/schema";
 import { eq } from "drizzle-orm";
 
