@@ -1,6 +1,6 @@
 import { WebSocket } from "ws";
 import { db } from "../db/db";
-import { usersSessionsTable, usersTable } from "../db/schema/schema";
+import { usersSessionsTable, usersTable } from "../db/schema";
 import { eq } from "drizzle-orm";
 
 export type UserDBQuery = typeof usersTable.$inferInsert & {
