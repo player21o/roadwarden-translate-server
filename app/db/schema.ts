@@ -6,6 +6,7 @@ import { pgTable, serial } from "drizzle-orm/pg-core";
 
 export const enum UserPermission {
   file,
+  admin,
 }
 
 export type UserSession = {
@@ -135,6 +136,16 @@ export const cardsTable = pgTable("cards", {
   id: serial().primaryKey(),
   translation: text(),
   original: text(),
+});
+
+export const dictTable = pgTable("dict", {
+  id: serial().primaryKey(),
+  original: jsonb().notNull().$type<string[]>().default([]),
+  translation: jsonb().notNull().$type<string[]>().default([]),
+  context: text().notNull().default(""),
+  author: integer()
+    .references(() => usersTable.id)
+    .notNull(),
 });
 
 /*
