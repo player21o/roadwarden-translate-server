@@ -1,10 +1,10 @@
 import "dotenv/config";
-import { exec } from "child_process";
+import { exec, execSync } from "child_process";
 import { db } from "../app/db/db";
+import * as fs from "fs";
 import { existsSync, mkdirSync, readFileSync } from "fs";
-import { convertArgs } from "./utils/types";
 import { parse } from "./utils/parse";
-import { Files } from "../app/db/schema";
+import { cardsTable, Files } from "../app/db/schema";
 
 type ConverterMap = {
   boolean: (input: string) => boolean;
@@ -22,13 +22,15 @@ export const db_url = process.env.DATABASE_URL!;
 
 export const fcs = {
   backup: (log: boolean = true) => {
-    console.log(log);
-    if (log) console.log("making a backup...");
+    if (log)
+      console.log(
+        "making a backup... (you can restore it with 'restore' option)"
+      );
 
     if (!existsSync(import.meta.dirname + "/backups"))
       mkdirSync(import.meta.dirname + "/backups");
 
-    exec(
+    execSync(
       `pg_dump -d ${db_url} > ${import.meta.dirname}/backups/${new Date()
         .toLocaleString("ru-RU")
         .replaceAll(".", "-")
@@ -36,18 +38,61 @@ export const fcs = {
         .replaceAll(":", "-")}.sql`
     );
   },
-  parse: (file: string, backup = true) => {
-    if (backup) fcs.backup();
-    console.log(import.meta.dirname + `/../app/orfiles/${file}.rpy`);
+  parse: async (file: string | null = null, backup = true) => {
+    await fcs.clear(true, backup);
 
-    console.log(
-      parse(
+    var cards: ReturnType<typeof parse> = [];
+
+    if (file != null) {
+      cards = parse(
         readFileSync(import.meta.dirname + `/../app/orfiles/${file}.rpy`, {
           encoding: "utf-8",
         }),
         Files[file as keyof typeof Files]
-      )
-    );
+      );
+    } else {
+      const dir = await fs.promises.opendir(
+        import.meta.dirname + `/../app/orfiles/`
+      );
+      for await (const dirent of dir) {
+        let name = dirent.name.split(".rpy")[0];
+
+        if (dirent.name.endsWith(".rpy")) {
+          cards = cards.concat(
+            parse(
+              await fs.promises.readFile(
+                import.meta.dirname + `/../app/orfiles/${name}.rpy`,
+                {
+                  encoding: "utf-8",
+                }
+              ),
+              Files[name as keyof typeof Files]
+            )
+          );
+        }
+      }
+    }
+
+    const divided_cards: (typeof cards)[] = []; //because drizzle orm is stupid, we need to divide cards array into chunks
+    //otherwise, we get an error maximum stack exceeded blah blah blah
+
+    while (cards.length > 0) divided_cards.push(cards.splice(0, 5000));
+
+    divided_cards.forEach(async (card_group) => {
+      await db.insert(cardsTable).values(card_group);
+    });
+
+    process.exit();
+  },
+
+  clear: async (log = true, backup = true) => {
+    if (backup) fcs.backup();
+    if (log) console.log("purging all cards...");
+    await db.delete(cardsTable);
+  },
+
+  restore: () => {
+    console.log("restoring the latest backup...");
   },
 };
 
