@@ -1,6 +1,6 @@
 This is a repository for roadwarden translate server.
 
-To run:
+## To run:
 
 1. Clone the repository:
 
@@ -50,3 +50,5 @@ npx drizzle-kit push
 ```
 tsx app/main.ts
 ```
+
+Parsing and maintaining the files is done via [rd-kit](https://github.com/player21o/roadwarden-translate-server/tree/main/rd-kit)
