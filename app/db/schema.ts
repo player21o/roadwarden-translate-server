@@ -132,10 +132,12 @@ export function enumToPgEnum<T extends Record<string, any>>(
 export const filesEnum = pgEnum("files", enumToPgEnum(Files));
 
 export const cardsTable = pgTable("cards", {
-  file: filesEnum(),
-  id: serial().primaryKey(),
-  translation: text(),
-  original: text(),
+  file: filesEnum().notNull(),
+  id: serial().primaryKey().notNull(),
+  translation: text().notNull(),
+  original: text().notNull(),
+  line_start: integer().notNull(),
+  line_end: integer().notNull(),
 });
 
 export const dictTable = pgTable("dict", {

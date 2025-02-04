@@ -1,8 +1,10 @@
 import "dotenv/config";
 import { exec } from "child_process";
 import { db } from "../app/db/db";
-import { existsSync, mkdirSync } from "fs";
-import { convertArgs } from "./types";
+import { existsSync, mkdirSync, readFileSync } from "fs";
+import { convertArgs } from "./utils/types";
+import { parse } from "./utils/parse";
+import { Files } from "../app/db/schema";
 
 type ConverterMap = {
   boolean: (input: string) => boolean;
@@ -34,8 +36,18 @@ export const fcs = {
         .replaceAll(":", "-")}.sql`
     );
   },
-  parse: (backup = true) => {
+  parse: (file: string, backup = true) => {
     if (backup) fcs.backup();
+    console.log(import.meta.dirname + `/../app/orfiles/${file}.rpy`);
+
+    console.log(
+      parse(
+        readFileSync(import.meta.dirname + `/../app/orfiles/${file}.rpy`, {
+          encoding: "utf-8",
+        }),
+        Files[file as keyof typeof Files]
+      )
+    );
   },
 };
 
@@ -46,12 +58,7 @@ function isFcsCommand(command: string): command is keyof typeof fcs {
 if (process.argv[2] !== undefined) {
   const command = process.argv[2];
   if (isFcsCommand(command)) {
-    console.log(
-      convertArgs(fcs[command], process.argv.slice(3, process.argv.length))
-    );
-    fcs[command](
-      ...convertArgs(fcs[command], process.argv.slice(3, process.argv.length))
-    );
+    fcs[command](...process.argv.slice(3, process.argv.length));
   } else {
     console.log(
       `unrecognized argument '${command}'. Available commands:\n` +
