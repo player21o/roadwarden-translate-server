@@ -41,6 +41,8 @@ export const fcs = {
   parse: async (file: string | null = null, backup = true) => {
     await fcs.clear(true, backup);
 
+    console.log("parsing...");
+
     var cards: ReturnType<typeof parse> = [];
 
     if (file != null) {
@@ -73,16 +75,20 @@ export const fcs = {
       }
     }
 
+    //console.log(cards);
+
     const divided_cards: (typeof cards)[] = []; //because drizzle orm is stupid, we need to divide cards array into chunks
     //otherwise, we get an error maximum stack exceeded blah blah blah
 
-    while (cards.length > 0) divided_cards.push(cards.splice(0, 5000));
+    while (cards.length > 0) divided_cards.push(cards.splice(0, 1));
+    //console.log(divided_cards.length);
 
     divided_cards.forEach(async (card_group) => {
+      //console.log(card_group);
       await db.insert(cardsTable).values(card_group);
     });
 
-    process.exit();
+    //process.exit();
   },
 
   clear: async (log = true, backup = true) => {
