@@ -1,22 +1,14 @@
+//DEPRECATED - this code is a dogshit
+
 //tool for parsing variables that don't get displayed to the player
 //used in parse.ts
 //NOT MEANT TO BE USED
 
 import * as fs from "fs";
+import { removePythonComments } from "./parse";
 
 function escapeRegExp(string: string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
-}
-
-function removePythonComments(code: string): string {
-  // i dont even know what the fuck it is
-  // author of this regex pattern: deepseek
-  const pattern =
-    /(?:'''[\s\S]*?'''|"""[\s\S]*?"""|'[^'\\]*(?:\\.[^'\\]*)*'|"[^"\\]*(?:\\.[^"\\]*)*")|(\s*#.*$)/gm;
-
-  return code.replace(pattern, (match, commentGroup) => {
-    return commentGroup !== undefined ? "" : match;
-  });
 }
 
 const contents: [string, string][] = [];
