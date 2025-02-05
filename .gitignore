@@ -2,6 +2,7 @@ app/config.ts
 .vscode
 .dependencygraph
 backups
+d.json
 
 # Logsss
 logs
