@@ -108,7 +108,11 @@ contents.forEach(([content, file]) => {
     );
   }
 
-  menus.map((m) => m.replaceAll("\\n", "\n").replaceAll("\r", "\n"));
+  menus = menus.map((m) => m.replaceAll("\\n", "\n"));
+
+  menus = menus.filter(
+    (m) => m.search("==") == -1 && m.search("!=") == -1 && m.search("$") == -1
+  );
 
   //if (file == "screens.rpy") {
   //  fs.writeFileSync("d.json", JSON.stringify(menus), { encoding: "utf-8" });
@@ -158,6 +162,9 @@ vars.forEach((v) => {
     // prettier-ignore
     if (string.search(`${escapeRegExp(v)}`) != -1) {
       //console.log([string, v])
+      if (v == 'custom2') {
+        console.log(string)
+      }
       found = true;
       return true;
     }

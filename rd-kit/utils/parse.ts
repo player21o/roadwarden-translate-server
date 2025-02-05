@@ -6,6 +6,7 @@ export function parse(
 ): (typeof cardsTable.$inferInsert)[] {
   function filter(str: string, line: string) {
     const blacklisted_vars = [
+      "pc_religion",
       "quarters_counter",
       "day_counter_plural",
       "greenmountaintribe_firstattitude",
@@ -77,12 +78,15 @@ export function parse(
       "sleep_options",
       "wanderer_offering",
       "description_hovlavan04",
+      "pc_class",
+      "pc_goal",
+      "questionpreset",
     ];
 
     let found_blacklisted_var = false;
 
     blacklisted_vars.some((v) => {
-      if (line.search("$ " + v) != -1) {
+      if (line.search(v + " =") != -1) {
         found_blacklisted_var = true;
         return true;
       }
