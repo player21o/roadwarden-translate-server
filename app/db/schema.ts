@@ -1,4 +1,4 @@
-import { jsonb, pgEnum } from "drizzle-orm/pg-core";
+import { boolean, jsonb, pgEnum } from "drizzle-orm/pg-core";
 import { timestamp } from "drizzle-orm/pg-core";
 import { integer } from "drizzle-orm/pg-core";
 import { text } from "drizzle-orm/pg-core";
@@ -138,6 +138,7 @@ export const cardsTable = pgTable("cards", {
   original: text().notNull(),
   line_start: integer().notNull(),
   line_end: integer().notNull(),
+  hidden: boolean().notNull().default(false),
 });
 
 export const dictTable = pgTable("dict", {

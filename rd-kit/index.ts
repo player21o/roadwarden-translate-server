@@ -80,13 +80,18 @@ export const fcs = {
     const divided_cards: (typeof cards)[] = []; //because drizzle orm is stupid, we need to divide cards array into chunks
     //otherwise, we get an error maximum stack exceeded blah blah blah
 
-    while (cards.length > 0) divided_cards.push(cards.splice(0, 1));
+    while (cards.length > 0) divided_cards.push(cards.splice(0, 1000));
     //console.log(divided_cards.length);
 
-    divided_cards.forEach(async (card_group) => {
+    divided_cards.forEach((card_group) => {
       //console.log(card_group);
-      await db.insert(cardsTable).values(card_group);
+      db.insert(cardsTable)
+        .values(card_group)
+        .then(() => {});
     });
+
+    //console.log(divided_cards);
+    //console.log(await db.select().from(cardsTable));
 
     //process.exit();
   },
