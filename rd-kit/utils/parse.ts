@@ -1,15 +1,31 @@
 import { MultiBar, Presets, SingleBar } from "cli-progress";
 import { cardsTable, Files, portalsTable } from "../../app/db/schema";
+import { writeFileSync } from "node:fs";
 
 export function removePythonComments(code: string): string {
-  // i dont even know what the fuck it is
-  // author of this regex pattern: deepseek
   const pattern =
-    /(?:'''[\s\S]*?'''|"""[\s\S]*?"""|'[^'\\]*(?:\\.[^'\\]*)*'|"[^"\\]*(?:\\.[^"\\]*)*")|(\s*#.*$)/gm;
+    /(?:'''[\s\S]*?'''|"""[\s\S]*?"""|'[^'\\]*(?:\\.[^'\\]*)*'|"[^"\\]*(?:\\.[^"\\]*)*")|(#.*$)/g;
 
-  return code.replace(pattern, (match, commentGroup) => {
-    return commentGroup !== undefined ? "" : match;
-  });
+  return code
+    .split("\n")
+    .map((line) => {
+      // Preserve empty lines early
+      if (line.trim() === "") return line;
+
+      // Remove comments while handling whole-line cases
+      const cleaned = line.replace(pattern, (match, comment) => {
+        // If it's a comment not inside a string
+        if (comment) {
+          // Check if the entire line is a comment
+          return /^\s*#/.test(line) ? "" : match.replace(/\s*#.*/, "");
+        }
+        return match;
+      });
+
+      // If the line became empty after comment removal, preserve whitespace
+      return cleaned.trim() === "" ? "" : cleaned;
+    })
+    .join("\n");
 }
 
 export function parse(
@@ -38,6 +54,7 @@ export function parse(
   }
 
   content = removePythonComments(content); //remove any comments
+  //writeFileSync("d.json", content);
 
   const cards: (typeof cardsTable.$inferInsert)[] = [];
   const lines = content.split("\n");
@@ -46,8 +63,15 @@ export function parse(
   function addCard(card: typeof cardsTable.$inferInsert, line: string) {
     if (!all_strings.includes(card.original) && filter(card.original, line)) {
       all_strings.push(card.original);
+
       card.hidden = should_be_hidden(card.original, line);
       card.original = card.original.replaceAll("\\n", "\n");
+
+      if (cardSearchWords.length > 0 && !card.hidden) {
+        card.search_original = cardSearchWords.slice();
+        cardSearchWords = [];
+      }
+
       cards.push(card);
     }
   }
@@ -67,7 +91,11 @@ export function parse(
     ) {
       //check if the string is one-liner
 
-      if (line.search("==") == -1 && line.search("search") == -1) {
+      if (line.includes("==") && line.includes("search")) {
+        cardSearchWords = line //add all search words
+          .split('"')
+          .filter((string, index) => index % 2 != 0);
+      } else {
         //if there are no search words
         const strings = line //create an array of strings in that line
           .split('"')
@@ -87,10 +115,6 @@ export function parse(
             line
           );
         });
-      } else {
-        cardSearchWords = line //add all search words
-          .split('"')
-          .filter((string, index) => index % 2 != 0);
       }
     } else if (
       (line.match(/'/g) || []).length == 1 ||
@@ -189,6 +213,8 @@ export function parse_portals(cards: ReturnType<typeof parse>, pgs = false) {
 
     if (progress != null) progress.increment(1);
   });
+
+  if (progress != null) progress.stop();
 
   return portals;
 }

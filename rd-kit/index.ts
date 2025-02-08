@@ -107,7 +107,8 @@ export const fcs = {
             db.select()
               .from(cardsTable)
               .then((q) => {
-                console.log(parse_portals(q, true));
+                files_bar.stop();
+                //console.log(parse_portals(q, true));
               });
           }
         });
