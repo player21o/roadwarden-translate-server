@@ -3,27 +3,65 @@ import { cardsTable, Files, portalsTable } from "../../app/db/schema";
 import { writeFileSync } from "node:fs";
 
 export function removePythonComments(code: string): string {
-  const pattern =
-    /(?:'''[\s\S]*?'''|"""[\s\S]*?"""|'[^'\\]*(?:\\.[^'\\]*)*'|"[^"\\]*(?:\\.[^"\\]*)*")|(#.*$)/gm;
+  let inSingleLineString: "'" | '"' | null = null;
+  let inMultiLineString: "'''" | '"""' | null = null;
+  let escapeNext = false;
 
   return code
     .split("\n")
     .map((line) => {
-      // Preserve empty lines early
-      if (line.trim() === "") return line;
+      let cleaned = "";
+      let commentStart = -1;
 
-      // Remove comments while handling whole-line cases
-      const cleaned = line.replace(pattern, (match, comment) => {
-        // If it's a comment not inside a string
-        if (comment) {
-          // Check if the entire line is a comment
-          return /^\s*#/.test(line) ? "" : match.replace(/\s*#.*/, "");
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+
+        // Handle string states
+        if (!escapeNext && !inMultiLineString) {
+          if (char === "\\") {
+            escapeNext = true;
+          } else if (char === inSingleLineString) {
+            inSingleLineString = null;
+          } else if (!inSingleLineString) {
+            if (char === "#") {
+              commentStart = i;
+              break;
+            }
+            if (char === "'" || char === '"') {
+              // Check for triple quotes
+              if (
+                line.slice(i, i + 3) === "'''" ||
+                line.slice(i, i + 3) === '"""'
+              ) {
+                inMultiLineString = line.slice(i, i + 3) as "'''" | '"""';
+                i += 2;
+                cleaned += line.slice(i - 2, i + 1);
+                continue;
+              }
+              inSingleLineString = char;
+            }
+          }
+        } else if (escapeNext) {
+          escapeNext = false;
         }
-        return match;
-      });
 
-      // If the line became empty after comment removal, preserve whitespace
-      return cleaned.trim() === "" ? "" : cleaned;
+        // Handle multi-line strings
+        if (inMultiLineString) {
+          if (
+            line.slice(i, i + inMultiLineString.length) === inMultiLineString
+          ) {
+            inMultiLineString = null;
+            i += inMultiLineString!.length - 1;
+          }
+        }
+
+        cleaned += char;
+      }
+
+      // Preserve original line structure
+      return commentStart >= 0
+        ? cleaned + line.slice(commentStart).replace(/#.*/, "")
+        : cleaned;
     })
     .join("\n");
 }
@@ -35,13 +73,36 @@ export function parse(
   function filter(str: string, line: string) {
     const strm = str.trim();
     var isVars = false;
+    var vars_count = 0;
 
-    str.split(" ").some((word) => {
+    strm.split(" ").some((word) => {
       if (/\[.+\]/gm.test(word)) {
-        isVars = true;
-        return true;
+        vars_count += 1;
       }
     });
+
+    if (vars_count == strm.split(" ").length) isVars = true;
+
+    if (
+      !(
+        strm.length > 0 &&
+        str != "nvl" &&
+        str.search("==") == -1 &&
+        !(strm.charAt(0) == "#" && !strm.includes(" ")) &&
+        !(strm.search(/\./) != -1 && !strm.includes(" ")) &&
+        !(strm.charAt(0) == "(" && strm.charAt(strm.length - 1) == ")") &&
+        !(strm.includes("<") || strm.includes(">")) &&
+        !(strm.includes("==") || strm.includes("!=")) &&
+        !(
+          strm.toLowerCase() == strm &&
+          !strm.includes("[") &&
+          strm.includes("_")
+        ) &&
+        !isVars
+      )
+    ) {
+      //console.log(isVars, str);
+    }
 
     return (
       strm.length > 0 &&
