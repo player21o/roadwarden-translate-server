@@ -16,7 +16,7 @@ export type UserSession = {
 };
 
 export const usersTable = pgTable("users", {
-  id: serial().primaryKey().notNull(),
+  id: integer().primaryKey().notNull(),
   name: text().notNull(),
   avatar_url: text().notNull(),
   permissions: jsonb().notNull().$type<[UserPermission, any?][]>().default([]),
@@ -139,6 +139,8 @@ export const cardsTable = pgTable("cards", {
   line_start: integer().notNull(),
   line_end: integer().notNull(),
   hidden: boolean().notNull().default(false),
+  search_translation: jsonb().notNull().$type<string[]>().default([]),
+  search_original: jsonb().notNull().$type<string[]>().default([]),
 });
 
 export const dictTable = pgTable("dict", {
@@ -151,14 +153,9 @@ export const dictTable = pgTable("dict", {
     .notNull(),
 });
 
-/*
-export const usersSessionsRelation2 = relations(
-  usersSessionsTable,
-  ({ one }) => ({
-    author: one(usersTable, {
-      fields: [usersSessionsTable.user_id],
-      references: [usersTable.id],
-    }),
-  })
-);
-*/
+export const portalsTable = pgTable("cards_portals", {
+  id: serial().primaryKey().notNull(),
+  original: text().notNull(),
+  translation: text().notNull().default(""),
+  cards: jsonb().notNull().$type<number[]>().default([]),
+});

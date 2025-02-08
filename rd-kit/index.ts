@@ -3,8 +3,9 @@ import { exec, execSync } from "child_process";
 import { db } from "../app/db/db";
 import * as fs from "fs";
 import { existsSync, mkdirSync, readFileSync } from "fs";
-import { parse } from "./utils/parse";
-import { cardsTable, Files } from "../app/db/schema";
+import { parse, parse_portals } from "./utils/parse";
+import { cardsTable, Files, portalsTable } from "../app/db/schema";
+import { MultiBar, Presets, SingleBar } from "cli-progress";
 
 type ConverterMap = {
   boolean: (input: string) => boolean;
@@ -43,9 +44,21 @@ export const fcs = {
 
     console.log("parsing...");
 
+    const files_bar = new SingleBar(
+      {
+        clearOnComplete: false,
+        hideCursor: false,
+        format: " {bar} | {filename} | {value}/{total}",
+      },
+      Presets.shades_grey
+    );
+
+    files_bar.start(file != null ? 1 : Object.keys(Files).length, 0);
+
     var cards: ReturnType<typeof parse> = [];
 
     if (file != null) {
+      files_bar.update(1, { filename: file });
       cards = parse(
         readFileSync(import.meta.dirname + `/../app/orfiles/${file}.rpy`, {
           encoding: "utf-8",
@@ -58,6 +71,8 @@ export const fcs = {
       );
       for await (const dirent of dir) {
         let name = dirent.name.split(".rpy")[0];
+
+        files_bar.increment(1, { filename: name });
 
         if (dirent.name.endsWith(".rpy")) {
           cards = cards.concat(
@@ -83,11 +98,19 @@ export const fcs = {
     while (cards.length > 0) divided_cards.push(cards.splice(0, 1000));
     //console.log(divided_cards.length);
 
-    divided_cards.forEach((card_group) => {
+    divided_cards.forEach((card_group, index) => {
       //console.log(card_group);
       db.insert(cardsTable)
         .values(card_group)
-        .then(() => {});
+        .then(() => {
+          if (index == divided_cards.length - 1) {
+            db.select()
+              .from(cardsTable)
+              .then((q) => {
+                console.log(parse_portals(q, true));
+              });
+          }
+        });
     });
 
     //console.log(divided_cards);
@@ -100,6 +123,7 @@ export const fcs = {
     if (backup) fcs.backup();
     if (log) console.log("purging all cards...");
     await db.delete(cardsTable);
+    await db.delete(portalsTable);
   },
 
   restore: () => {

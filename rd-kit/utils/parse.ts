@@ -1,4 +1,5 @@
-import { cardsTable, Files } from "../../app/db/schema";
+import { MultiBar, Presets, SingleBar } from "cli-progress";
+import { cardsTable, Files, portalsTable } from "../../app/db/schema";
 
 export function removePythonComments(code: string): string {
   // i dont even know what the fuck it is
@@ -43,14 +44,11 @@ export function parse(
   const all_strings: string[] = []; // array for all strings to avoid their duplication
 
   function addCard(card: typeof cardsTable.$inferInsert, line: string) {
-    if (
-      all_strings.indexOf(card.original) == -1 &&
-      filter(card.original, line)
-    ) {
+    if (!all_strings.includes(card.original) && filter(card.original, line)) {
+      all_strings.push(card.original);
       card.hidden = should_be_hidden(card.original, line);
       card.original = card.original.replaceAll("\\n", "\n");
       cards.push(card);
-      all_strings.push(card.original);
     }
   }
 
@@ -58,6 +56,7 @@ export function parse(
   var potentialCard = "";
   var cardStartLine = 0;
   var cardEndLine = 0;
+  var cardSearchWords: string[] = [];
 
   lines.forEach((line, index) => {
     const trimmed_line = line.trim();
@@ -67,24 +66,32 @@ export function parse(
       (line.match(/"/g) || []).length > 1
     ) {
       //check if the string is one-liner
-      const strings = line //create an array of strings in that line
-        .split('"')
-        .filter((string, index) => index % 2 != 0)
-        .concat(line.split("'").filter((string, index) => index % 2 != 0));
 
-      strings.forEach((string) => {
-        //console.log(string);
-        addCard(
-          {
-            file: file_name,
-            line_end: index,
-            line_start: index,
-            original: string,
-            translation: "",
-          },
-          line
-        );
-      });
+      if (line.search("==") == -1 && line.search("search") == -1) {
+        //if there are no search words
+        const strings = line //create an array of strings in that line
+          .split('"')
+          .filter((string, index) => index % 2 != 0)
+          .concat(line.split("'").filter((string, index) => index % 2 != 0));
+
+        strings.forEach((string) => {
+          //console.log(string);
+          addCard(
+            {
+              file: file_name,
+              line_end: index,
+              line_start: index,
+              original: string,
+              translation: "",
+            },
+            line
+          );
+        });
+      } else {
+        cardSearchWords = line //add all search words
+          .split('"')
+          .filter((string, index) => index % 2 != 0);
+      }
     } else if (
       (line.match(/'/g) || []).length == 1 ||
       (line.match(/"/g) || []).length == 1
@@ -124,4 +131,64 @@ export function parse(
   });
 
   return cards;
+}
+
+export function parse_portals(cards: ReturnType<typeof parse>, pgs = false) {
+  const passages: { original: string; card_id: number }[] = [];
+  const marked_passages: number[] = []; //passages that we dont need to process
+  const portals: (typeof portalsTable.$inferInsert)[] = []; //actual portals
+
+  cards.forEach((card) => {
+    card.original.split("\n").forEach((passage) => {
+      const trimmed = passage.trim();
+
+      if (passage.length > 0)
+        passages.push({ original: trimmed, card_id: card.id! });
+    });
+  });
+
+  var progress: SingleBar | null = null;
+
+  if (pgs) {
+    //console.log(pgs);
+    progress = new SingleBar(
+      {
+        clearOnComplete: false,
+        hideCursor: false,
+        format: " {bar} | portals | {value}/{total}",
+      },
+      Presets.shades_grey
+    );
+    progress.start(passages.length, 0);
+  }
+
+  passages.forEach((first_passage, first_passage_index) => {
+    const same_passages: typeof passages = []; //indicates whether the passage is truly unique across the game
+    marked_passages.push(first_passage_index);
+
+    passages.forEach((second_passage, second_passage_index) => {
+      //we dont wanna compare two identical passages
+
+      if (first_passage.original == second_passage.original) {
+        if (first_passage.card_id != second_passage.card_id) {
+          same_passages.push(second_passage); //hell yeah!
+          marked_passages.push(second_passage_index);
+        }
+      }
+    });
+
+    if (same_passages.length > 0) {
+      //if we found any equal passages, create a portal from them
+      portals.push({
+        original: first_passage.original,
+        cards: [first_passage.card_id].concat(
+          same_passages.map((e) => e.card_id)
+        ),
+      });
+    }
+
+    if (progress != null) progress.increment(1);
+  });
+
+  return portals;
 }
