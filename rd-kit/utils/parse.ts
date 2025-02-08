@@ -4,7 +4,7 @@ import { writeFileSync } from "node:fs";
 
 export function removePythonComments(code: string): string {
   const pattern =
-    /(?:'''[\s\S]*?'''|"""[\s\S]*?"""|'[^'\\]*(?:\\.[^'\\]*)*'|"[^"\\]*(?:\\.[^"\\]*)*")|(#.*$)/g;
+    /(?:'''[\s\S]*?'''|"""[\s\S]*?"""|'[^'\\]*(?:\\.[^'\\]*)*'|"[^"\\]*(?:\\.[^"\\]*)*")|(#.*$)/gm;
 
   return code
     .split("\n")
@@ -34,16 +34,30 @@ export function parse(
 ): (typeof cardsTable.$inferInsert)[] {
   function filter(str: string, line: string) {
     const strm = str.trim();
+    var isVars = false;
+
+    str.split(" ").some((word) => {
+      if (/\[.+\]/gm.test(word)) {
+        isVars = true;
+        return true;
+      }
+    });
 
     return (
       strm.length > 0 &&
       str != "nvl" &&
       str.search("==") == -1 &&
-      !(str.charAt(0) == "#" && str.search(" ") == -1) &&
-      !(str.search(/\./) != -1 && str.search(" ") == -1) &&
+      !(strm.charAt(0) == "#" && !strm.includes(" ")) &&
+      !(strm.search(/\./) != -1 && !strm.includes(" ")) &&
       !(strm.charAt(0) == "(" && strm.charAt(strm.length - 1) == ")") &&
-      !(strm.search("<") != -1 && strm.search(">") != -1) &&
-      !(strm.search("==") != -1 || strm.search("!=") != -1)
+      !(strm.includes("<") || strm.includes(">")) &&
+      !(strm.includes("==") || strm.includes("!=")) &&
+      !(
+        strm.toLowerCase() == strm &&
+        !strm.includes("[") &&
+        strm.includes("_")
+      ) &&
+      !isVars
     );
   }
 
@@ -54,7 +68,7 @@ export function parse(
   }
 
   content = removePythonComments(content); //remove any comments
-  //writeFileSync("d.json", content);
+  writeFileSync("d.json", content);
 
   const cards: (typeof cardsTable.$inferInsert)[] = [];
   const lines = content.split("\n");
