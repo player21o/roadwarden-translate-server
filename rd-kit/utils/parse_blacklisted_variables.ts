@@ -5,7 +5,7 @@
 //NOT MEANT TO BE USED
 
 import * as fs from "fs";
-import { removePythonComments } from "./parse";
+import { removePythonComments } from "./utils";
 
 function escapeRegExp(string: string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
