@@ -50,6 +50,7 @@ export const fcs = {
         clearOnComplete: false,
         hideCursor: false,
         format: " {bar} | {filename} | {value}/{total}",
+        fps: 60,
       },
       Presets.shades_grey
     );
@@ -67,60 +68,31 @@ export const fcs = {
         Files[file as keyof typeof Files]
       );
     } else {
-      const dir = await fs.promises.opendir(
-        import.meta.dirname + `/../app/orfiles/`
-      );
-      for await (const dirent of dir) {
-        let name = dirent.name.split(".rpy")[0];
+      Object.keys(Files).forEach((file) => {
+        //console.log(file);
+        cards = cards.concat(
+          parse(
+            readFileSync(import.meta.dirname + `/../app/orfiles/${file}.rpy`, {
+              encoding: "utf-8",
+            }),
+            Files[file as keyof typeof Files]
+          )
+        );
 
-        files_bar.increment(1, { filename: name });
-
-        if (dirent.name.endsWith(".rpy")) {
-          cards = cards.concat(
-            parse(
-              await fs.promises.readFile(
-                import.meta.dirname + `/../app/orfiles/${name}.rpy`,
-                {
-                  encoding: "utf-8",
-                }
-              ),
-              Files[name as keyof typeof Files]
-            )
-          );
-        }
-      }
+        files_bar.increment(1, { filename: file });
+      });
     }
 
     await insert_bulk(cardsTable, cards);
 
-    //console.log(cards);
-    /*
+    files_bar.stop();
 
-    const divided_cards: (typeof cards)[] = []; //because drizzle orm is stupid, we need to divide cards array into chunks
-    //otherwise, we get an error maximum stack exceeded blah blah blah
+    await insert_bulk(
+      portalsTable,
+      parse_portals(await db.select().from(cardsTable), true)
+    );
 
-    while (cards.length > 0) divided_cards.push(cards.splice(0, 1000));
-    //console.log(divided_cards.length);
-
-    divided_cards.forEach((card_group, index) => {
-      //console.log(card_group);
-      db.insert(cardsTable)
-        .values(card_group)
-        .then(() => {
-          if (index == divided_cards.length - 1) {
-            db.select()
-              .from(cardsTable)
-              .then((q) => {
-                files_bar.stop();
-                //console.log(parse_portals(q, true));
-              });
-          }
-        });
-    });
-    */
-
-    //console.log(divided_cards);
-    //console.log(await db.select().from(cardsTable));
+    return;
 
     //process.exit();
   },

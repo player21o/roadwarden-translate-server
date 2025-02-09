@@ -189,7 +189,8 @@ export function parse_portals(cards: ReturnType<typeof parse>, pgs = false) {
       {
         clearOnComplete: false,
         hideCursor: false,
-        format: " {bar} | portals | {value}/{total}",
+        format: " {bar} | portals ({found}) | {value}/{total}",
+        fps: 60,
       },
       Presets.shades_grey
     );
@@ -204,7 +205,10 @@ export function parse_portals(cards: ReturnType<typeof parse>, pgs = false) {
       //we dont wanna compare two identical passages
 
       if (first_passage.original == second_passage.original) {
-        if (first_passage.card_id != second_passage.card_id) {
+        if (
+          first_passage.card_id != second_passage.card_id &&
+          !marked_passages.includes(second_passage_index)
+        ) {
           same_passages.push(second_passage); //hell yeah!
           marked_passages.push(second_passage_index);
         }
@@ -221,7 +225,10 @@ export function parse_portals(cards: ReturnType<typeof parse>, pgs = false) {
       });
     }
 
-    if (progress != null) progress.increment(1);
+    if (progress != null)
+      progress.increment(1, {
+        found: `${same_passages.length > 0 ? "found" : "not found"}`,
+      });
   });
 
   if (progress != null) progress.stop();
