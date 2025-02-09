@@ -68,7 +68,16 @@ export function removePythonComments(code: string): string {
 
 export async function insert_bulk<T extends PgTable>(
   table: T,
-  items: PgInsertValue<T, false>[]
+  items: PgInsertValue<T, false>[],
+  chunk_size: number = 1000
 ) {
-  await db.insert(table).values(items);
+  const divided: typeof items = [];
+
+  while (items.length > 0) {
+    divided.push(...items.splice(0, chunk_size));
+  }
+
+  divided.forEach(async (val) => {
+    await db.insert(table).values(val);
+  });
 }

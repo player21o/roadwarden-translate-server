@@ -1,2 +1,2 @@
-ALTER SEQUENCE cards_id_seq RESTART WITH 0;
-ALTER SEQUENCE cards_portals_id_seq RESTART WITH 0;
+ALTER SEQUENCE cards_id_seq RESTART WITH 1;
+ALTER SEQUENCE cards_portals_id_seq RESTART WITH 1;

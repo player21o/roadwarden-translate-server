@@ -6,6 +6,7 @@ import { existsSync, mkdirSync, readFileSync } from "fs";
 import { parse, parse_portals } from "./utils/parse";
 import { cardsTable, Files, portalsTable } from "../app/db/schema";
 import { MultiBar, Presets, SingleBar } from "cli-progress";
+import { insert_bulk } from "./utils/utils";
 
 type ConverterMap = {
   boolean: (input: string) => boolean;
@@ -90,7 +91,10 @@ export const fcs = {
       }
     }
 
+    await insert_bulk(cardsTable, cards);
+
     //console.log(cards);
+    /*
 
     const divided_cards: (typeof cards)[] = []; //because drizzle orm is stupid, we need to divide cards array into chunks
     //otherwise, we get an error maximum stack exceeded blah blah blah
@@ -113,6 +117,7 @@ export const fcs = {
           }
         });
     });
+    */
 
     //console.log(divided_cards);
     //console.log(await db.select().from(cardsTable));
