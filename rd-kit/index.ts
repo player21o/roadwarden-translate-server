@@ -125,6 +125,8 @@ export const fcs = {
     if (log) console.log("purging all cards...");
     await db.delete(cardsTable);
     await db.delete(portalsTable);
+
+    exec(`psql -f "${import.meta.dirname + "/clear.sql"}" "${db_url}"`);
   },
 
   restore: () => {
