@@ -7,7 +7,11 @@ import { parse, parse_portals } from "./utils/parse";
 import { cardsTable, Files, portalsTable } from "../app/db/schema";
 import { MultiBar, Presets, SingleBar } from "cli-progress";
 import { insert_bulk } from "./utils/utils";
-import { transfer_dict, transfer_users } from "./utils/transfer";
+import {
+  transfer_cards,
+  transfer_dict,
+  transfer_users,
+} from "./utils/transfer";
 
 type ConverterMap = {
   boolean: (input: string) => boolean;
@@ -84,7 +88,11 @@ export const fcs = {
       });
     }
 
+    files_bar.increment(0, { filename: "committing changes..." });
+
     await insert_bulk(cardsTable, cards);
+
+    files_bar.increment(0, { filename: "cards are inserted" });
 
     files_bar.stop();
 
@@ -93,7 +101,7 @@ export const fcs = {
       parse_portals(await db.select().from(cardsTable), true)
     );
 
-    return;
+    //return;
 
     //process.exit();
   },
@@ -136,17 +144,43 @@ export const fcs = {
     }
   },
 
-  transfer: async (type: "users" | "dict", path: string) => {
+  transfer: async (type: "users" | "dict" | "only_cards", path: string) => {
     fcs.backup();
 
-    const content = JSON.parse(
-      fs.readFileSync(import.meta.dirname + "/" + path, { encoding: "utf-8" })
-    );
+    var content: any = {};
 
-    if (type == "users") {
-      await transfer_users(content);
-    } else if (type == "dict") {
-      await transfer_dict(content);
+    if (type != "only_cards") {
+      content = JSON.parse(
+        fs.readFileSync(import.meta.dirname + "/" + path, { encoding: "utf-8" })
+      );
+    }
+
+    const tr_cards = async () => {
+      const files: string[] = fs.readdirSync(import.meta.dirname + "/" + path);
+      //console.log(files);
+      const file_contents: { [file: string]: any } = {};
+
+      files.forEach((file_name) => {
+        file_contents[file_name] = JSON.parse(
+          fs.readFileSync(import.meta.dirname + "/" + path + "/" + file_name, {
+            encoding: "utf-8",
+          })
+        );
+      });
+
+      await transfer_cards(file_contents);
+
+      //console.log(file_contents);
+    };
+
+    switch (type) {
+      case "dict":
+        await transfer_dict(content);
+      case "users":
+        await transfer_users(content);
+      case "only_cards":
+        //await transfer_cards(content);
+        await tr_cards();
     }
   },
 };

@@ -75,7 +75,9 @@ export function parse(
       all_strings.push(card.original);
 
       card.hidden = should_be_hidden(card.original, line);
-      card.original = card.original.replaceAll("\\n", "\n");
+      card.original = card.original
+        .replaceAll("\\n", "\n")
+        .replaceAll("\r", "");
 
       if (cardSearchWords.length > 0 && !card.hidden) {
         card.search_original = cardSearchWords.slice();
@@ -144,7 +146,7 @@ export function parse(
               file: file_name,
               line_start: cardStartLine,
               line_end: cardEndLine,
-              original: potentialCard,
+              original: potentialCard.slice(0, -1), //to delete the trailing \n
               translation: "",
             },
             line

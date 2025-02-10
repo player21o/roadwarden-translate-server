@@ -1,5 +1,15 @@
+import { and, eq, like } from "drizzle-orm";
+import { fcs } from "..";
+import * as fs from "fs";
 import { db } from "../../app/db/db";
-import { dictTable, UserPermission, usersTable } from "../../app/db/schema";
+import {
+  cardsTable,
+  dictTable,
+  Files,
+  UserPermission,
+  usersTable,
+} from "../../app/db/schema";
+import { Presets, SingleBar } from "cli-progress";
 
 export async function transfer_users(
   data: [
@@ -54,4 +64,57 @@ export async function transfer_dict(
   );
 
   await db.insert(dictTable).values(insert_data);
+}
+
+export async function transfer_cards(data: {
+  [file: string]: {
+    cards: [string, string, number, number, boolean, boolean][];
+  };
+}) {
+  //await fcs.parse(undefined, false);
+
+  const bar = new SingleBar(
+    {
+      clearOnComplete: false,
+      hideCursor: false,
+      format: " {bar} | {filename} | {value}/{total}",
+      fps: 60,
+    },
+    Presets.shades_grey
+  );
+  bar.start(Object.keys(data).length, 0);
+
+  fs.writeFileSync(
+    import.meta.dirname + "/um.json",
+    JSON.stringify(
+      await db
+        .select()
+        .from(cardsTable)
+        .where(eq(cardsTable.file, Files.shortcut))
+        .orderBy(cardsTable.line_start)
+    )
+  );
+
+  Object.keys(data).forEach((file_name) => {
+    bar.increment(1, { filename: file_name });
+
+    data[file_name]!.cards.forEach(
+      async ([or, tr, id, line, hidden, unlinked]) => {
+        await db
+          .update(cardsTable)
+          .set({ translation: tr })
+          .where(
+            and(
+              eq(
+                cardsTable.file,
+                Files[file_name.split(".rpy")[0] as keyof typeof Files]
+              ),
+              like(cardsTable.original, or)
+            )
+          );
+      }
+    );
+  });
+
+  bar.stop();
 }
