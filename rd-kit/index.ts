@@ -7,7 +7,7 @@ import { parse, parse_portals } from "./utils/parse";
 import { cardsTable, Files, portalsTable } from "../app/db/schema";
 import { MultiBar, Presets, SingleBar } from "cli-progress";
 import { insert_bulk } from "./utils/utils";
-import { transfer_users } from "./utils/transfer";
+import { transfer_dict, transfer_users } from "./utils/transfer";
 
 type ConverterMap = {
   boolean: (input: string) => boolean;
@@ -136,14 +136,18 @@ export const fcs = {
     }
   },
 
-  transfer_users: async (path: string) => {
+  transfer: async (type: "users" | "dict", path: string) => {
     fcs.backup();
 
-    await transfer_users(
-      JSON.parse(
-        fs.readFileSync(import.meta.dirname + "/" + path, { encoding: "utf-8" })
-      )
+    const content = JSON.parse(
+      fs.readFileSync(import.meta.dirname + "/" + path, { encoding: "utf-8" })
     );
+
+    if (type == "users") {
+      await transfer_users(content);
+    } else if (type == "dict") {
+      await transfer_dict(content);
+    }
   },
 };
 
