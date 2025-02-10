@@ -227,7 +227,7 @@ export function parse_portals(cards: ReturnType<typeof parse>, pgs = false) {
 
     if (progress != null)
       progress.increment(1, {
-        found: `${same_passages.length > 0 ? "found" : "not found"}`,
+        found: `${same_passages.length > 0 ? "✓" : "✗"}`,
       });
   });
 

@@ -33,11 +33,11 @@ export const fcs = {
       mkdirSync(import.meta.dirname + "/backups");
 
     execSync(
-      `pg_dump -d ${db_url} > ${import.meta.dirname}/backups/${new Date()
+      `pg_dump -Fc ${db_url} > ${import.meta.dirname}/backups/${new Date()
         .toLocaleString("ru-RU")
         .replaceAll(".", "-")
         .replaceAll(", ", "_")
-        .replaceAll(":", "-")}.sql`
+        .replaceAll(":", "-")}.dump`
     );
   },
   parse: async (file: string | null = null, backup = true) => {
@@ -103,11 +103,36 @@ export const fcs = {
     await db.delete(cardsTable);
     await db.delete(portalsTable);
 
-    exec(`psql -f "${import.meta.dirname + "/clear.sql"}" "${db_url}"`);
+    execSync(`psql -f "${import.meta.dirname + "/clear.sql"}" "${db_url}"`);
   },
 
   restore: () => {
     console.log("restoring the latest backup...");
+
+    const files_dates: [string, Date][] = [];
+
+    const f_list = fs.readdirSync(import.meta.dirname + "/backups");
+
+    f_list.forEach(function (file) {
+      let stats = fs.statSync(import.meta.dirname + "/backups/" + file);
+      files_dates.push([file, stats.mtime]);
+    });
+
+    files_dates.sort(function (a, b) {
+      // Turn your strings into dates, and then subtract them
+      // to get a value that is either negative, positive, or zero.
+      return b[1].getTime() - a[1].getTime();
+    });
+
+    if (files_dates[0] != undefined) {
+      execSync(
+        `pg_restore -c -d "${db_url}" "${
+          import.meta.dirname + "/backups/" + files_dates[0][0]
+        }"`
+      );
+    } else {
+      console.log("no backups found!");
+    }
   },
 };
 
