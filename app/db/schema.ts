@@ -4,34 +4,6 @@ import { integer } from "drizzle-orm/pg-core";
 import { text } from "drizzle-orm/pg-core";
 import { pgTable, serial } from "drizzle-orm/pg-core";
 
-export const enum UserPermission {
-  file,
-  admin,
-}
-
-export type UserSession = {
-  token: string;
-  expires: string; //this is actually a date object but stringified...
-  ip: string;
-};
-
-export const usersTable = pgTable("users", {
-  id: integer().primaryKey().notNull(),
-  name: text().notNull(),
-  avatar_url: text().notNull(),
-  permissions: jsonb().notNull().$type<[UserPermission, any?][]>().default([]),
-  //sessions: jsonb().$type<UserSession[]>().default([]),
-});
-
-export const usersSessionsTable = pgTable("users_sessions", {
-  token: text().notNull().primaryKey(),
-  user_id: integer()
-    .references(() => usersTable.id)
-    .notNull(),
-  expires: timestamp({ mode: "date" }).notNull(),
-  ip: text().notNull(),
-});
-
 export enum Files {
   mountainroad = "mountainroad",
   screens = "screens",
@@ -123,6 +95,34 @@ export enum Files {
   southerncrossroads = "southerncrossroads",
 }
 
+export const enum UserPermission {
+  file,
+  admin,
+}
+
+export type UserSession = {
+  token: string;
+  expires: string; //this is actually a date object but stringified...
+  ip: string;
+};
+
+export const usersTable = pgTable("users", {
+  id: integer().primaryKey().notNull(),
+  name: text().notNull(),
+  avatar_url: text().notNull(),
+  permissions: jsonb().notNull().$type<[UserPermission, any?][]>().default([]),
+  //sessions: jsonb().$type<UserSession[]>().default([]),
+});
+
+export const usersSessionsTable = pgTable("users_sessions", {
+  token: text().notNull().primaryKey(),
+  user_id: integer()
+    .references(() => usersTable.id)
+    .notNull(),
+  expires: timestamp({ mode: "date" }).notNull(),
+  ip: text().notNull(),
+});
+
 export function enumToPgEnum<T extends Record<string, any>>(
   myEnum: T
 ): [T[keyof T], ...T[keyof T][]] {
@@ -141,6 +141,8 @@ export const cardsTable = pgTable("cards", {
   hidden: boolean().notNull().default(false),
   search_translation: jsonb().notNull().$type<string[]>().default([]),
   search_original: jsonb().notNull().$type<string[]>().default([]),
+  first_translated_date: timestamp(),
+  first_translated_user_id: integer().references(() => usersTable.id),
 });
 
 export const dictTable = pgTable("dict", {
