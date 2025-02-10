@@ -7,6 +7,7 @@ import { parse, parse_portals } from "./utils/parse";
 import { cardsTable, Files, portalsTable } from "../app/db/schema";
 import { MultiBar, Presets, SingleBar } from "cli-progress";
 import { insert_bulk } from "./utils/utils";
+import { transfer_users } from "./utils/transfer";
 
 type ConverterMap = {
   boolean: (input: string) => boolean;
@@ -133,6 +134,16 @@ export const fcs = {
     } else {
       console.log("no backups found!");
     }
+  },
+
+  transfer_users: async (path: string) => {
+    fcs.backup();
+
+    await transfer_users(
+      JSON.parse(
+        fs.readFileSync(import.meta.dirname + "/" + path, { encoding: "utf-8" })
+      )
+    );
   },
 };
 

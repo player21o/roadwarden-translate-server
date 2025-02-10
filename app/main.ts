@@ -1,4 +1,3 @@
-import { beachFile, fileSchemas } from "./db/schema/files";
 import { Status, Tracks } from "./protocol/packets";
 import { prot } from "./protocol/server";
 import { db } from "./db/db";
@@ -28,7 +27,7 @@ db.query.usersTable.findFirst({ with: { id: 0 } }).then((result) => {
     }
   }
 });
-*/
+
 
 const card: typeof beachFile.$inferInsert = {
   original: "Hello",
@@ -44,3 +43,4 @@ db.insert(fileSchemas["beach.rpy"])
   .then(() => {
     console.log("new card!");
   });
+*/

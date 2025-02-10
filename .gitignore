@@ -3,6 +3,7 @@ app/config.ts
 .dependencygraph
 backups
 d.json
+users.json
 
 # Logsss
 logs

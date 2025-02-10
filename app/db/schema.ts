@@ -1,4 +1,4 @@
-import { boolean, jsonb, pgEnum } from "drizzle-orm/pg-core";
+import { bigint, boolean, jsonb, pgEnum } from "drizzle-orm/pg-core";
 import { timestamp } from "drizzle-orm/pg-core";
 import { integer } from "drizzle-orm/pg-core";
 import { text } from "drizzle-orm/pg-core";
@@ -107,7 +107,7 @@ export type UserSession = {
 };
 
 export const usersTable = pgTable("users", {
-  id: integer().primaryKey().notNull(),
+  id: text().primaryKey().notNull(),
   name: text().notNull(),
   avatar_url: text().notNull(),
   permissions: jsonb().notNull().$type<[UserPermission, any?][]>().default([]),
@@ -116,7 +116,7 @@ export const usersTable = pgTable("users", {
 
 export const usersSessionsTable = pgTable("users_sessions", {
   token: text().notNull().primaryKey(),
-  user_id: integer()
+  user_id: text()
     .references(() => usersTable.id)
     .notNull(),
   expires: timestamp({ mode: "date" }).notNull(),
@@ -142,7 +142,7 @@ export const cardsTable = pgTable("cards", {
   search_translation: jsonb().notNull().$type<string[]>().default([]),
   search_original: jsonb().notNull().$type<string[]>().default([]),
   first_translated_date: timestamp(),
-  first_translated_user_id: integer().references(() => usersTable.id),
+  first_translated_user_id: text().references(() => usersTable.id),
 });
 
 export const dictTable = pgTable("dict", {
@@ -150,7 +150,7 @@ export const dictTable = pgTable("dict", {
   original: jsonb().notNull().$type<string[]>().default([]),
   translation: jsonb().notNull().$type<string[]>().default([]),
   context: text().notNull().default(""),
-  author: integer()
+  author: text()
     .references(() => usersTable.id)
     .notNull(),
 });
