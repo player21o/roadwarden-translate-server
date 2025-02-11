@@ -1,5 +1,4 @@
 import { and, eq, like } from "drizzle-orm";
-import { fcs } from "..";
 import * as fs from "fs";
 import { db } from "../../app/db/db";
 import {
@@ -71,8 +70,6 @@ export async function transfer_cards(data: {
     cards: [string, string, number, number, boolean, boolean][];
   };
 }) {
-  //await fcs.parse(undefined, false);
-
   const bar = new SingleBar(
     {
       clearOnComplete: false,
@@ -83,17 +80,6 @@ export async function transfer_cards(data: {
     Presets.shades_grey
   );
   bar.start(Object.keys(data).length, 0);
-
-  fs.writeFileSync(
-    import.meta.dirname + "/um.json",
-    JSON.stringify(
-      await db
-        .select()
-        .from(cardsTable)
-        .where(eq(cardsTable.file, Files.shortcut))
-        .orderBy(cardsTable.line_start)
-    )
-  );
 
   Object.keys(data).forEach((file_name) => {
     bar.increment(1, { filename: file_name });
