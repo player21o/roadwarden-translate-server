@@ -11,22 +11,22 @@ import {
 } from "../../app/db/schema";
 import { Presets, SingleBar } from "cli-progress";
 
-export async function transfer_users(
-  data: [
-    string, //id
-    string, //former key
-    [
-      string, //name
-      number, //num. of comments
-      [], //idk
-      { [key: string]: (number | [number, [number, number, number]])[] }, //translated cards with dates
-      string[], //allowed files
-      [], //bookmarks
-      string, //avatar_url
-      [] //roles
-    ]
-  ][]
-) {
+type JSONUsers = [
+  string, //id
+  string, //former key
+  [
+    string, //name
+    number, //num. of comments
+    [], //idk
+    { [key: string]: (number | [number, [number, number, number]])[] }, //translated cards with dates
+    string[], //allowed files
+    [], //bookmarks
+    string, //avatar_url
+    [] //roles
+  ]
+][];
+
+export async function transfer_users(data: JSONUsers) {
   await db.delete(usersTable);
 
   const insert_data: (typeof usersTable.$inferInsert)[] = data.map(
@@ -98,7 +98,7 @@ export async function transfer_cards(data: JSONCards) {
                 cardsTable.file,
                 Files[file_name.split(".rpy")[0] as keyof typeof Files]
               ),
-              like(cardsTable.original, or)
+              eq(cardsTable.original, or)
             )
           );
       }
@@ -145,4 +145,8 @@ export function transfer_portals(data: JSONCards) {
   });
 
   bar.stop();
+}
+
+export function transfer_cards_stats(users: JSONUsers, cards: JSONCards) {
+  const card_ids: JSONCards["cards"] = [];
 }
