@@ -5,6 +5,7 @@ import {
   cardsTable,
   dictTable,
   Files,
+  portalsTable,
   UserPermission,
   usersTable,
 } from "../../app/db/schema";
@@ -65,11 +66,13 @@ export async function transfer_dict(
   await db.insert(dictTable).values(insert_data);
 }
 
-export async function transfer_cards(data: {
+type JSONCards = {
   [file: string]: {
     cards: [string, string, number, number, boolean, boolean][];
   };
-}) {
+};
+
+export async function transfer_cards(data: JSONCards) {
   const bar = new SingleBar(
     {
       clearOnComplete: false,
@@ -98,6 +101,45 @@ export async function transfer_cards(data: {
               like(cardsTable.original, or)
             )
           );
+      }
+    );
+  });
+
+  bar.stop();
+}
+
+export function transfer_portals(data: JSONCards) {
+  const bar = new SingleBar(
+    {
+      clearOnComplete: false,
+      hideCursor: false,
+      format: " {bar} | {filename} (portals) | {value}/{total}",
+      fps: 60,
+    },
+    Presets.shades_grey
+  );
+  bar.start(Object.keys(data).length, 0);
+
+  Object.keys(data).forEach((file_name) => {
+    bar.increment(1, { filename: file_name });
+
+    data[file_name]!.cards.forEach(
+      async ([or, tr, id, line, hidden, unlinked]) => {
+        const ot = or.trim();
+        const tt = tr.trim();
+
+        if (tt.length > 0 && ot.split("\n").length == tt.split("\n").length) {
+          ot.split("\n").forEach(async (passage, index) => {
+            const p = passage.trim();
+
+            if (p.length > 0 && tr.split("\n")[index]!.trim().length > 0) {
+              await db
+                .update(portalsTable)
+                .set({ translation: tr.split("\n")[index] })
+                .where(eq(portalsTable.original, p));
+            }
+          });
+        }
       }
     );
   });

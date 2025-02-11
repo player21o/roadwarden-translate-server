@@ -10,6 +10,7 @@ import { insert_bulk } from "./utils/utils";
 import {
   transfer_cards,
   transfer_dict,
+  transfer_portals,
   transfer_users,
 } from "./utils/transfer";
 
@@ -144,18 +145,21 @@ export const fcs = {
     }
   },
 
-  transfer: async (type: "users" | "dict" | "only_cards", path: string) => {
+  transfer: async (
+    type: "users" | "dict" | "only_cards" | "portals",
+    path: string
+  ) => {
     fcs.backup();
 
     var content: any = {};
 
-    if (type != "only_cards") {
+    if (type != "only_cards" && type != "portals") {
       content = JSON.parse(
         fs.readFileSync(import.meta.dirname + "/" + path, { encoding: "utf-8" })
       );
     }
 
-    const tr_cards = async () => {
+    const get_files = () => {
       const files: string[] = fs.readdirSync(import.meta.dirname + "/" + path);
       //console.log(files);
       const file_contents: { [file: string]: any } = {};
@@ -168,9 +172,7 @@ export const fcs = {
         );
       });
 
-      await transfer_cards(file_contents);
-
-      //console.log(file_contents);
+      return file_contents;
     };
 
     switch (type) {
@@ -180,7 +182,9 @@ export const fcs = {
         await transfer_users(content);
       case "only_cards":
         //await transfer_cards(content);
-        await tr_cards();
+        await transfer_cards(get_files());
+      case "portals":
+        await transfer_portals(get_files());
     }
   },
 };
