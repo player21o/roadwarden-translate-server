@@ -9,6 +9,7 @@ import { MultiBar, Presets, SingleBar } from "cli-progress";
 import { insert_bulk } from "./utils/utils";
 import {
   transfer_cards,
+  transfer_cards_stats,
   transfer_dict,
   transfer_portals,
   transfer_users,
@@ -146,14 +147,14 @@ export const fcs = {
   },
 
   transfer: async (
-    type: "users" | "dict" | "only_cards" | "portals",
+    type: "users" | "dict" | "only_cards" | "portals" | "card_stats",
     path: string
   ) => {
     fcs.backup();
 
     var content: any = {};
 
-    if (type != "only_cards" && type != "portals") {
+    if (type != "only_cards" && type != "portals" && type != "card_stats") {
       content = JSON.parse(
         fs.readFileSync(import.meta.dirname + "/" + path, { encoding: "utf-8" })
       );
@@ -178,13 +179,26 @@ export const fcs = {
     switch (type) {
       case "dict":
         await transfer_dict(content);
+        break;
       case "users":
         await transfer_users(content);
+        break;
       case "only_cards":
-        //await transfer_cards(content);
         await transfer_cards(get_files());
+        break;
       case "portals":
         await transfer_portals(get_files());
+        break;
+      case "card_stats":
+        await transfer_cards_stats(
+          JSON.parse(
+            fs.readFileSync(import.meta.dirname + "/" + "users.json", {
+              encoding: "utf-8",
+            })
+          ),
+          get_files()
+        );
+        break;
     }
   },
 };

@@ -39,7 +39,10 @@ export async function transfer_users(data: JSONUsers) {
         id: id,
         avatar_url: avatar_url,
         name: name,
-        permissions: allowed.map((a) => [UserPermission.file, a]),
+        permissions: allowed.map((a) => [
+          UserPermission.file,
+          a.split(".rpy")[0],
+        ]),
       };
     }
   );
@@ -66,9 +69,11 @@ export async function transfer_dict(
   await db.insert(dictTable).values(insert_data);
 }
 
+type JSONCard = [string, string, number, number, boolean, boolean];
+
 type JSONCards = {
   [file: string]: {
-    cards: [string, string, number, number, boolean, boolean][];
+    cards: JSONCard[];
   };
 };
 
@@ -147,6 +152,56 @@ export function transfer_portals(data: JSONCards) {
   bar.stop();
 }
 
-export function transfer_cards_stats(users: JSONUsers, cards: JSONCards) {
-  const card_ids: JSONCards["cards"] = [];
+export function transfer_cards_stats(users: JSONUsers, files: JSONCards) {
+  const card_ids: Record<string, Record<number, JSONCard>> = {};
+
+  Object.keys(files).forEach((file_name) => {
+    card_ids[file_name] = {};
+
+    files[file_name]!.cards.forEach((card) => {
+      card_ids[file_name]![card[2]] = card;
+    });
+  });
+
+  users.forEach(
+    ([
+      id,
+      key,
+      [name, commits, _, translated, allowed, __, avatar_url, ___],
+    ]) => {
+      let date: Date = new Date();
+
+      Object.keys(translated).forEach(async (file_name) => {
+        translated[file_name]!.forEach(async (tr) => {
+          let card_id: number = 0;
+
+          if (Array.isArray(tr)) {
+            date = new Date(Date.UTC(tr[1][0], tr[1][1], tr[1][2], 0, 0, 0));
+
+            card_id = tr[0];
+          } else {
+            card_id = tr;
+          }
+
+          //console.log(id);
+
+          await db
+            .update(cardsTable)
+            .set({
+              first_translated_user_id: id.toString(),
+              first_translated_date: date,
+            })
+            .where(
+              and(
+                eq(
+                  cardsTable.file,
+                  Files[file_name.split(".rpy")[0] as keyof typeof Files]
+                ),
+                eq(cardsTable.original, card_ids[file_name]![card_id]![0])
+              )
+            );
+        });
+      });
+    }
+  );
 }
