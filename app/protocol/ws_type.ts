@@ -11,7 +11,7 @@ export class WsType {
   private ws: WebSocket;
 
   public ip: string;
-  public user_id: number | null = null;
+  public user_id: string | null = null;
 
   constructor(ws: WebSocket, ip: string) {
     this.ws = ws;

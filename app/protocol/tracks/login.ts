@@ -40,7 +40,7 @@ function get_session(token: string) {
     .where(eq(usersSessionsTable.token, token));
 }
 
-function login_user(ws: WsType, user_id: number) {
+function login_user(ws: WsType, user_id: string) {
   ws.user_id = user_id;
 }
 
@@ -149,9 +149,9 @@ async function login_through_discord(
       const get_user = await db
         .select()
         .from(usersTable)
-        .where(eq(usersTable.id, parseInt(user_req_response.id)));
+        .where(eq(usersTable.id, user_req_response.id));
 
-      let user_id = -1;
+      let user_id = "-1";
 
       if (get_user[0] != undefined) {
         //if user exists
@@ -159,6 +159,7 @@ async function login_through_discord(
       } else {
         //if he doesn't (user is not registered)
         const usr = await create_new_user({
+          id: user_req_response.id,
           name: user_req_response.username,
           avatar_url: `https://cdn.discordapp.com/avatars/${user_req_response.id}/${user_req_response.avatar}`, //f'https://cdn.discordapp.com/avatars/{j["id"]}/{j["avatar"]}.png'
         });
