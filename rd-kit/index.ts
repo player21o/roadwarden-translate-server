@@ -4,7 +4,7 @@ import { db } from "../app/db/db";
 import * as fs from "fs";
 import { existsSync, mkdirSync, readFileSync } from "fs";
 import { parse, parse_portals } from "./utils/parse";
-import { cardsTable, Files, portalsTable } from "../app/db/schema";
+import { cardsTable, dictTable, Files, portalsTable } from "../app/db/schema";
 import { MultiBar, Presets, SingleBar } from "cli-progress";
 import { insert_bulk } from "./utils/utils";
 import {
@@ -117,6 +117,16 @@ export const fcs = {
     execSync(`psql -f "${import.meta.dirname + "/clear.sql"}" "${db_url}"`);
   },
 
+  clear_usage: async (log = true, backup = true) => {
+    if (backup) fcs.backup();
+    if (log) console.log("purging all usage data...");
+    await db.delete(dictTable);
+
+    execSync(
+      `psql -f "${import.meta.dirname + "/clear_usage.sql"}" "${db_url}"`
+    );
+  },
+
   restore: () => {
     console.log("restoring the latest backup...");
 
@@ -147,14 +157,19 @@ export const fcs = {
   },
 
   transfer: async (
-    type: "users" | "dict" | "only_cards" | "portals" | "card_stats",
+    type: "users" | "dict" | "portals" | "card_stats" | "cards" | "all",
     path: string
   ) => {
     fcs.backup();
 
     var content: any = {};
 
-    if (type != "only_cards" && type != "portals" && type != "card_stats") {
+    if (
+      type != "cards" &&
+      type != "portals" &&
+      type != "card_stats" &&
+      type != "all"
+    ) {
       content = JSON.parse(
         fs.readFileSync(import.meta.dirname + "/" + path, { encoding: "utf-8" })
       );
@@ -183,7 +198,7 @@ export const fcs = {
       case "users":
         await transfer_users(content);
         break;
-      case "only_cards":
+      case "cards":
         await transfer_cards(get_files());
         break;
       case "portals":
@@ -199,6 +214,39 @@ export const fcs = {
           get_files()
         );
         break;
+      case "all":
+        /*
+        await fcs.clear();
+        await fcs.clear_usage();
+
+        await transfer_users(
+          JSON.parse(
+            fs.readFileSync(import.meta.dirname + "/" + "users.json", {
+              encoding: "utf-8",
+            })
+          )
+        );
+
+        await transfer_dict(
+          JSON.parse(
+            fs.readFileSync(import.meta.dirname + "/" + "d.json", {
+              encoding: "utf-8",
+            })
+          )
+        );
+
+        await transfer_cards(get_files());
+        await transfer_portals(get_files());
+        await transfer_cards_stats(
+          JSON.parse(
+            fs.readFileSync(import.meta.dirname + "/" + "d.json", {
+              encoding: "utf-8",
+            })
+          ),
+          get_files()
+        );
+      */
+        console.log("to be implemented");
     }
   },
 };

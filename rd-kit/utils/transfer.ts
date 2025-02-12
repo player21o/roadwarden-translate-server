@@ -69,7 +69,16 @@ export async function transfer_dict(
   await db.insert(dictTable).values(insert_data);
 }
 
-type JSONCard = [string, string, number, number, boolean, boolean];
+type JSONCard = [
+  string,
+  string,
+  number,
+  number,
+  boolean,
+  boolean,
+  string[]?,
+  string[]?
+];
 
 type JSONCards = {
   [file: string]: {
@@ -93,10 +102,10 @@ export async function transfer_cards(data: JSONCards) {
     bar.increment(1, { filename: file_name });
 
     data[file_name]!.cards.forEach(
-      async ([or, tr, id, line, hidden, unlinked]) => {
+      async ([or, tr, id, line, hidden, unlinked, or_search, tr_search]) => {
         await db
           .update(cardsTable)
-          .set({ translation: tr })
+          .set({ translation: tr, search_translation: tr_search })
           .where(
             and(
               eq(
