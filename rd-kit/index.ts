@@ -127,6 +127,14 @@ export const fcs = {
     );
   },
 
+  clear_all: async (log = true, backup = true) => {
+    if (backup) fcs.backup();
+    if (log) console.log("purging all data...");
+
+    await fcs.clear_usage(true, false);
+    await fcs.clear(true, false);
+  },
+
   restore: () => {
     console.log("restoring the latest backup...");
 

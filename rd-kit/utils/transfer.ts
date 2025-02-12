@@ -1,5 +1,4 @@
-import { and, eq, like } from "drizzle-orm";
-import * as fs from "fs";
+import { and, eq, ne } from "drizzle-orm";
 import { db } from "../../app/db/db";
 import {
   cardsTable,
@@ -120,6 +119,20 @@ export async function transfer_cards(data: JSONCards) {
   });
 
   bar.stop();
+
+  console.log(
+    ((
+      await db
+        .select()
+        .from(cardsTable)
+        .where(
+          and(ne(cardsTable.translation, ""), eq(cardsTable.hidden, false))
+        )
+    ).length /
+      (await db.select().from(cardsTable).where(eq(cardsTable.hidden, false)))
+        .length) *
+      100
+  );
 }
 
 export function transfer_portals(data: JSONCards) {
