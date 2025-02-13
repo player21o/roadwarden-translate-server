@@ -4,6 +4,6 @@ import { prot } from "../server";
 
 export function discord_auth_link_listener() {
   prot.listen(Tracks.discordlink, (packet) => {
-    packet.answer({ url: config.discord.auth_link });
+    packet.answer({ url: config.discord.auth_link, status: 200 });
   });
 }
