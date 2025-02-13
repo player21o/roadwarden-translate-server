@@ -45,11 +45,11 @@ export class Protocol {
       req_id: Math.round(Math.random() * 1000),
     };
 
-    if (track) {
+    if (track != undefined) {
       full_packet.track_id = track;
     }
 
-    if (req_id) full_packet.req_id = req_id;
+    if (req_id != undefined) full_packet.req_id = req_id;
 
     return this.send_full_packet(full_packet, ws);
   }
@@ -88,14 +88,12 @@ export class Protocol {
   public listen<T extends Tracks>(
     track_num: T,
     callback: (packet: TrackToPacket<T>, ws: WsType) => any,
-    rate_limit: number | null = null
+    rate_limit = 0
   ) {
-    if (rate_limit != null) {
-      this.event_emitter_rate_limits[track_num] = {
-        interval: rate_limit,
-        last_packet: Date.now(),
-      };
-    }
+    this.event_emitter_rate_limits[track_num] = {
+      interval: rate_limit,
+      last_packet: Date.now(),
+    };
 
     return this.event_emitter.on(track_num.toString(), callback);
   }

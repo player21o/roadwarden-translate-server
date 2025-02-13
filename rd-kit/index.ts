@@ -266,7 +266,8 @@ function isFcsCommand(command: string): command is keyof typeof fcs {
 if (process.argv[2] !== undefined) {
   const command = process.argv[2];
   if (isFcsCommand(command)) {
-    fcs[command](...process.argv.slice(3, process.argv.length));
+    //@ts-ignore
+    fcs[command](...(process.argv.slice(3) as any[]));
   } else {
     console.log(
       `unrecognized argument '${command}'. Available commands:\n` +

@@ -48,7 +48,7 @@ npx drizzle-kit push
 6. Run server:
 
 ```
-tsx app/main.ts
+tsx app
 ```
 
 Parsing and maintaining the files is done via [rd-kit](https://github.com/player21o/roadwarden-translate-server/tree/main/rd-kit)
