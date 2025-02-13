@@ -14,6 +14,8 @@ export function login_listener() {
     async (packet, ws) => {
       const user = await ws.getUser();
 
+      console.log(user);
+
       if (user != null) {
         packet.answer({ status: Status.failure }); //user is logged in, but we need user logged out
       } else {
@@ -23,6 +25,7 @@ export function login_listener() {
             status: await login_through_session(packet.token, ws),
           });
         } else if (packet.method == "discord" && packet.token != undefined) {
+          console.log("disocrd");
           packet.answer(await login_through_discord(packet.token, ws));
         } else {
           packet.answer({ status: Status.failure });
@@ -115,20 +118,28 @@ async function login_through_discord(
 ): Promise<{ status: Status; token?: string }> {
   //first, we need to obtain *token* for getting the user info to work
   const token_req_body = {
-    client_id: config.discord.client.id,
-    client_secret: config.discord.client.secret,
+    //client_id: config.discord.client.id,
+    //client_secret: config.discord.client.secret,
     grant_type: "authorization_code",
     code: code,
     redirect_uri: config.discord.redirect_url,
   };
 
-  const token_req = await fetch("https://discord.com/api/v10/oauth2/token", {
+  const token_req = await fetch("https://discord.com/api/oauth2/token", {
     method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization:
+        "Basic " +
+        btoa(config.discord.client.id + ":" + config.discord.client.secret),
+    },
     body: JSON.stringify(token_req_body),
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
   });
 
+  console.log(await token_req.json());
+
   if (token_req.ok) {
+    //console.log("token ok");
     //if there's no problems with code user provided
     const token_req_response = (await token_req.json()) as {
       access_token: string;

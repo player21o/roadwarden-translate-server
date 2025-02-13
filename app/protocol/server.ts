@@ -25,7 +25,7 @@ class ServerProtocol extends Protocol {
       (ws: WebSocket & { is_alive: boolean }, request) => {
         ws.is_alive = true;
         const socket = new WsType(ws, request.socket.remoteAddress!); //req.headers['x-forwarded-for'].split(',')[0].trim();
-        console.log(socket.ip);
+        //console.log(socket.ip);
 
         this.clients.push(socket);
 
