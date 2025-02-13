@@ -5,7 +5,7 @@ import { register_tracks } from "./protocol/tracks/tracks_register";
 
 prot.listen(Tracks.user, (packet, ws) => {
   console.log(packet);
-  packet.answer!({ status: Status.success });
+  packet.answer({ status: Status.success });
 });
 
 register_tracks();

@@ -15,17 +15,17 @@ export function login_listener() {
       const user = await ws.getUser();
 
       if (user != null) {
-        packet.answer!({ status: Status.failure }); //user is logged in, but we need user logged out
+        packet.answer({ status: Status.failure }); //user is logged in, but we need user logged out
       } else {
         if (packet.method == "session" && packet.token != undefined) {
           //if user logs with a session
-          packet.answer!({
+          packet.answer({
             status: await login_through_session(packet.token, ws),
           });
         } else if (packet.method == "discord" && packet.token != undefined) {
-          packet.answer!(await login_through_discord(packet.token, ws));
+          packet.answer(await login_through_discord(packet.token, ws));
         } else {
-          packet.answer!({ status: Status.failure });
+          packet.answer({ status: Status.failure });
         }
       }
     },

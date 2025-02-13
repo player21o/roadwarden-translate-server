@@ -56,6 +56,7 @@ export class Protocol {
 
   protected receive_packet(packet: Uint8Array, ws: WsType) {
     const decoded_packet: FullPacket = decode(packet);
+    decoded_packet.packet.ok = decoded_packet.packet.status! == Status.success;
     const built_packet = this.build_packet(decoded_packet, ws);
     if (decoded_packet.req_id in this.resolves) {
       let resolve = this.resolves[decoded_packet.req_id] as (
@@ -87,7 +88,10 @@ export class Protocol {
 
   public listen<T extends Tracks>(
     track_num: T,
-    callback: (packet: TrackToPacket<T>, ws: WsType) => any,
+    callback: (
+      packet: Required<Pick<TrackToPacket<T>, "answer">> & TrackToPacket<T>,
+      ws: WsType
+    ) => any,
     rate_limit = 0
   ) {
     this.event_emitter_rate_limits[track_num] = {
