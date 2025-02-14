@@ -21,9 +21,7 @@ export function login_listener() {
       } else {
         if (packet.method == "session" && packet.token != undefined) {
           //if user logs with a session
-          packet.answer({
-            status: await login_through_session(packet.token, ws),
-          });
+          packet.answer(await login_through_session(packet.token, ws));
         } else if (packet.method == "discord" && packet.token != undefined) {
           packet.answer(await login_through_discord(packet.token, ws));
         } else {
@@ -64,7 +62,7 @@ function prolong_session(token: string) {
 async function login_through_session(
   token: string,
   ws: WsType
-): Promise<Status> {
+): Promise<{ status: Status; user_id?: string }> {
   const query = await get_session(token);
 
   if (query[0] != undefined) {
@@ -84,12 +82,12 @@ async function login_through_session(
 
         login_user(ws, session.user_id);
 
-        return Status.success;
+        return { status: Status.success, user_id: session.user_id };
       }
     }
   }
 
-  return Status.failure;
+  return { status: Status.failure };
 }
 
 async function create_new_session(
@@ -114,7 +112,7 @@ function create_new_user(data: typeof usersTable.$inferInsert) {
 async function login_through_discord(
   code: string,
   ws: WsType
-): Promise<{ status: Status; token?: string }> {
+): Promise<{ status: Status; token?: string; user_id?: string }> {
   //first, we need to obtain *token* for getting the user info to work
   const token_req_body = {
     //client_id: config.discord.client.id,
@@ -184,7 +182,7 @@ async function login_through_discord(
 
       login_user(ws, user_id);
 
-      return { status: Status.success, token: session_token };
+      return { status: Status.success, token: session_token, user_id: user_id };
     }
   }
 

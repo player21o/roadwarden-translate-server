@@ -15,7 +15,7 @@ export const enum Tracks {
 }
 
 export type TrackToPacketMap = {
-  [Tracks.login]: LoginPacket;
+  [Tracks.login]: MakeLoginPacket;
   [Tracks.logout]: LogoutPacket;
   [Tracks.info]: GetInfoPacket;
   [Tracks.user]: GetUserPacket;
@@ -23,6 +23,16 @@ export type TrackToPacketMap = {
   [Tracks.file]: GetFilePacket;
   [Tracks.discordlink]: GetDiscordAuthLink;
 };
+
+export type OkPacket<Data, AnswerType = any> = Packet<AnswerType> &
+  (
+    | ({
+        ok: true;
+      } & Data)
+    | ({
+        ok?: false | undefined;
+      } & Partial<Data>)
+  );
 
 export type TrackToPacket<T extends Tracks> = TrackToPacketMap[T];
 
@@ -40,24 +50,27 @@ export interface Packet<AnswerType = any> {
   ok?: boolean;
 }
 
-export interface LoginPacket extends Packet<LoginPacket> {
-  method?: "session" | "discord";
-  token?: string;
+export interface MakeLoginPacket extends Packet<LoginPacket> {
+  method: "session" | "discord";
+  token: string;
 }
+
+export type LoginPacket = OkPacket<{ token: string; user_id: string }>;
 
 export interface LogoutPacket extends Packet<LogoutPacket> {}
 
 export interface GetUserPacket extends Packet<UserPacket> {
-  id: number;
+  id: string;
 }
 
 export type User = {
   name: string;
-  id: number;
+  id: string;
   avatar_url: string;
 };
 
-export type UserPacket = Packet & Partial<User>;
+//export type UserPacket = Packet & Partial<User>;
+export type UserPacket = OkPacket<User>;
 
 export interface GetInfoPacket extends Packet<InfoPacket> {}
 
