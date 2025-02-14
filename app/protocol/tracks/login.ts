@@ -14,7 +14,7 @@ export function login_listener() {
     async (packet, ws) => {
       const user = await ws.getUser();
 
-      console.log(user);
+      //console.log(user);
 
       if (user != null) {
         packet.answer({ status: Status.failure }); //user is logged in, but we need user logged out
@@ -25,7 +25,6 @@ export function login_listener() {
             status: await login_through_session(packet.token, ws),
           });
         } else if (packet.method == "discord" && packet.token != undefined) {
-          console.log("disocrd");
           packet.answer(await login_through_discord(packet.token, ws));
         } else {
           packet.answer({ status: Status.failure });
@@ -133,10 +132,10 @@ async function login_through_discord(
         "Basic " +
         btoa(config.discord.client.id + ":" + config.discord.client.secret),
     },
-    body: JSON.stringify(token_req_body),
+    body: new URLSearchParams(token_req_body),
   });
 
-  console.log(await token_req.json());
+  //console.log(await token_req.json());
 
   if (token_req.ok) {
     //console.log("token ok");

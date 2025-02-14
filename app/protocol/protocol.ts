@@ -68,18 +68,19 @@ export class Protocol {
       delete this.resolves[decoded_packet.req_id];
     } else if (decoded_packet.track_id !== undefined) {
       if (
-        Date.now() -
-          this.event_emitter_rate_limits[decoded_packet.track_id]!
-            .last_packet >=
-        this.event_emitter_rate_limits[decoded_packet.track_id]!.interval
+        Date.now() >=
+        this.event_emitter_rate_limits[decoded_packet.track_id]!.last_packet
       ) {
         this.event_emitter.emit(
           decoded_packet.track_id.toString(),
           built_packet,
           ws
         );
+
         this.event_emitter_rate_limits[decoded_packet.track_id]!.last_packet =
-          Date.now();
+          Date.now() +
+          this.event_emitter_rate_limits[decoded_packet.track_id]!.interval *
+            1000;
       } else {
         built_packet.answer!({ status: Status.rate_limit } as Packet);
       }
