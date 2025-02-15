@@ -3,6 +3,7 @@ import { timestamp } from "drizzle-orm/pg-core";
 import { integer } from "drizzle-orm/pg-core";
 import { text } from "drizzle-orm/pg-core";
 import { pgTable, serial } from "drizzle-orm/pg-core";
+import { UserPermission } from "../protocol/packets";
 
 export enum Files {
   mountainroad = "mountainroad",
@@ -93,11 +94,6 @@ export enum Files {
   wanderer = "wanderer",
   vines = "vines",
   southerncrossroads = "southerncrossroads",
-}
-
-export const enum UserPermission {
-  file,
-  admin,
 }
 
 export type UserSession = {

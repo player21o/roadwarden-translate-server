@@ -19,7 +19,10 @@ export function get_usr_listener() {
         id: usr.id,
         name: usr.name,
         avatar_url: usr.avatar_url,
+        permissions: usr.permissions,
       });
+    } else {
+      packet.answer({ status: Status.failure });
     }
   });
 }
