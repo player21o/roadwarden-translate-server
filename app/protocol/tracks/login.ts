@@ -14,8 +14,6 @@ export function login_listener() {
     async (packet, ws) => {
       const user = await ws.getUser();
 
-      //console.log(user);
-
       if (user != null) {
         packet.answer({ status: Status.failure }); //user is logged in, but we need user logged out
       } else {
