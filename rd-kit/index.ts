@@ -4,7 +4,13 @@ import { db } from "../app/db/db";
 import * as fs from "fs";
 import { existsSync, mkdirSync, readFileSync } from "fs";
 import { parse, parse_portals } from "./utils/parse";
-import { cardsTable, dictTable, Files, portalsTable } from "../app/db/schema";
+import {
+  cardsTable,
+  dictTable,
+  Files,
+  portalsTable,
+  usersSessionsTable,
+} from "../app/db/schema";
 import { MultiBar, Presets, SingleBar } from "cli-progress";
 import { insert_bulk } from "./utils/utils";
 import {
@@ -121,6 +127,7 @@ export const fcs = {
     if (backup) fcs.backup();
     if (log) console.log("purging all usage data...");
     await db.delete(dictTable);
+    await db.delete(usersSessionsTable);
 
     execSync(
       `psql -f "${import.meta.dirname + "/clear_usage.sql"}" "${db_url}"`

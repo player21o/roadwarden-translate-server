@@ -10,6 +10,7 @@ export function get_usr_listener() {
       .select()
       .from(usersTable)
       .where(eq(usersTable.id, packet.id));
+    console.log(packet);
 
     if (query[0] != undefined) {
       const usr = query[0];

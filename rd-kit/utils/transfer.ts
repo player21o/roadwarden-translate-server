@@ -5,9 +5,9 @@ import {
   dictTable,
   Files,
   portalsTable,
-  UserPermission,
   usersTable,
 } from "../../app/db/schema";
+import { UserPermission } from "../../app/protocol/packets";
 import { Presets, SingleBar } from "cli-progress";
 
 type JSONUsers = [
@@ -198,7 +198,7 @@ export function transfer_cards_stats(users: JSONUsers, files: JSONCards) {
           let card_id: number = 0;
 
           if (Array.isArray(tr)) {
-            date = new Date(Date.UTC(tr[1][0], tr[1][1], tr[1][2], 0, 0, 0));
+            date = new Date(tr[1][0], tr[1][1] - 1, tr[1][2]);
 
             card_id = tr[0];
           } else {
