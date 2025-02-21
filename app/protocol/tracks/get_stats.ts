@@ -1,22 +1,14 @@
 import { between, desc, eq } from "drizzle-orm";
 import { db } from "../../db/db";
 import { cardsTable } from "../../db/schema";
-import { Tracks } from "../packets";
+import { Status, Tracks } from "../packets";
 import { prot } from "../server";
 
 export function get_stats_listener() {
-  prot.listen(Tracks.stats, async (packet) => {
-    const start_date = new Date(
-      packet.start.year,
-      packet.start.month,
-      packet.start.day
-    );
+  prot.listen("get_stats", async ({ data, answer }) => {
+    const start_date = data.start;
 
-    const end_date = new Date(
-      packet.end.year,
-      packet.end.month,
-      packet.end.day
-    );
+    const end_date = data.end;
 
     console.log(start_date, end_date);
 
@@ -28,7 +20,7 @@ export function get_stats_listener() {
     .orderBy(desc(cardsTable.first_translated_date))
     */
 
-    const data: number[] = await Promise.all(
+    const dataa: number[] = await Promise.all(
       [
         ...Array(
           Math.floor(
@@ -76,8 +68,9 @@ export function get_stats_listener() {
         })
     );
 
-    packet.answer({
-      data: data,
+    answer({
+      status: Status.success,
+      data: dataa,
     });
   });
 }

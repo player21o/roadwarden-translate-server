@@ -10,20 +10,20 @@ import crypto from "crypto";
 
 export function login_listener() {
   prot.listen(
-    Tracks.login,
-    async (packet, ws) => {
+    "login",
+    async ({ data, answer }, ws) => {
       const user = await ws.getUser();
 
       if (user != null) {
-        packet.answer({ status: Status.failure }); //user is logged in, but we need user logged out
+        answer({ status: Status.failure }); //user is logged in, but we need user logged out
       } else {
-        if (packet.method == "session" && packet.token != undefined) {
+        if (data.method == "session" && data.token != undefined) {
           //if user logs with a session
-          packet.answer(await login_through_session(packet.token, ws));
-        } else if (packet.method == "discord" && packet.token != undefined) {
-          packet.answer(await login_through_discord(packet.token, ws));
+          answer(await login_through_session(data.token, ws));
+        } else if (data.method == "discord" && data.token != undefined) {
+          answer(await login_through_discord(data.token, ws));
         } else {
-          packet.answer({ status: Status.failure });
+          answer({ status: Status.failure });
         }
       }
     },

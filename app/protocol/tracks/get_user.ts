@@ -5,25 +5,27 @@ import { Status, Tracks } from "../packets";
 import { prot } from "../server";
 
 export function get_usr_listener() {
-  prot.listen(Tracks.user, async (packet) => {
+  prot.listen("get_user", async ({ data, answer }) => {
     const query = await db
       .select()
       .from(usersTable)
-      .where(eq(usersTable.id, packet.id));
-    console.log(packet);
+      .where(eq(usersTable.id, data.user_id));
+    console.log(data);
 
     if (query[0] != undefined) {
       const usr = query[0];
 
-      packet.answer({
+      answer({
         status: Status.success,
-        id: usr.id,
-        name: usr.name,
-        avatar_url: usr.avatar_url,
-        permissions: usr.permissions,
+        user: {
+          id: usr.id,
+          name: usr.name,
+          avatar_url: usr.avatar_url,
+          permissions: usr.permissions,
+        },
       });
     } else {
-      packet.answer({ status: Status.failure });
+      answer({ status: Status.failure });
     }
   });
 }
