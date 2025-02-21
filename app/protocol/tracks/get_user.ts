@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "../../db/db";
 import { usersTable } from "../../db/schema";
-import { Status, Tracks } from "../packets";
+import { Status } from "../packets";
 import { prot } from "../server";
 
 export function get_usr_listener() {

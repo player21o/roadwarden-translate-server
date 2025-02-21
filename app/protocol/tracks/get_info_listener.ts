@@ -1,5 +1,5 @@
 import { config } from "../../config";
-import { Status, Tracks } from "../packets";
+import { Status } from "../packets";
 import { prot } from "../server";
 
 export function get_info_listener() {
