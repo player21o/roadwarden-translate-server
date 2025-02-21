@@ -1,4 +1,6 @@
-export const enum Status {
+import { z } from "zod";
+
+export enum Status {
   success = 200,
   failure = 400,
   rate_limit = 429,
@@ -71,17 +73,10 @@ export interface GetUserPacket extends Packet<UserPacket> {
   id: string;
 }
 
-export const enum UserPermission {
+export enum UserPermission {
   file,
   admin,
 }
-
-export type User = {
-  name: string;
-  id: string;
-  avatar_url: string;
-  permissions: [UserPermission, any?][];
-};
 
 //export type UserPacket = Packet & Partial<User>;
 export type UserPacket = OkPacket<User>;
@@ -128,3 +123,62 @@ export interface GetStatsPacket extends Packet<StatsPacket> {
 }
 
 export type StatsPacket = OkPacket<{ data: number[] }>;
+
+const Login = z.object({
+  request: z.object({
+    method: z.union([z.literal("discord"), z.literal("session")]),
+    token: z.string(),
+  }),
+  response: z.object({
+    status: z.nativeEnum(Status),
+    session_token: z.string().optional(),
+  }),
+});
+
+const GetInfo = z.object({
+  request: z.object({
+    type: z.union([
+      z.literal("discord_auth_link"),
+      z.literal("translation_stats"),
+    ]),
+  }),
+  response: z
+    .object({
+      status: z.nativeEnum(Status),
+    })
+    .and(
+      z
+        .object({
+          translation_stats: z.object({
+            all: z.number(),
+            translated: z.number(),
+          }),
+        })
+        .or(
+          z.object({
+            link: z.string(),
+          })
+        )
+    ),
+});
+
+const User = z.object({
+  name: z.string(),
+  id: z.string(),
+  avatar_url: z.string(),
+  permissions: z
+    .tuple([z.nativeEnum(UserPermission), z.any().optional()])
+    .array(),
+});
+
+export type User = z.infer<typeof User>;
+
+const GetUser = z.object({
+  request: z.object({
+    user_id: z.string(),
+  }),
+  response: z.object({
+    status: z.nativeEnum(Status),
+    user: User.optional(),
+  }),
+});
