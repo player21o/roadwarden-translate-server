@@ -10,7 +10,6 @@ export function get_usr_listener() {
       .select()
       .from(usersTable)
       .where(eq(usersTable.id, data.user_id));
-    console.log(data);
 
     if (query[0] != undefined) {
       const usr = query[0];

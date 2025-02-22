@@ -32,6 +32,7 @@ export function login_listener() {
 }
 
 function get_session(token: string) {
+  //console.log(token);
   return db
     .select()
     .from(usersSessionsTable)
@@ -66,6 +67,7 @@ async function login_through_session(
   if (query[0] != undefined) {
     //if session exists
     const session = query[0];
+    //console.log("token exists");
 
     if (session.ip == ws.ip) {
       //for additional security
@@ -110,7 +112,7 @@ function create_new_user(data: typeof usersTable.$inferInsert) {
 async function login_through_discord(
   code: string,
   ws: WsType
-): Promise<{ status: Status; token?: string; user_id?: string }> {
+): Promise<{ status: Status; session_token?: string; user_id?: string }> {
   //first, we need to obtain *token* for getting the user info to work
   const token_req_body = {
     //client_id: config.discord.client.id,
@@ -132,6 +134,8 @@ async function login_through_discord(
   });
 
   //console.log(await token_req.json());
+
+  //console.log(code);
 
   if (token_req.ok) {
     //console.log("token ok");
@@ -178,9 +182,13 @@ async function login_through_discord(
         user_id: user_id,
       });
 
-      login_user(ws, user_id);
+      //login_user(ws, user_id);
 
-      return { status: Status.success, token: session_token, user_id: user_id };
+      return {
+        status: Status.success,
+        session_token: session_token,
+        user_id: user_id,
+      };
     }
   }
 
