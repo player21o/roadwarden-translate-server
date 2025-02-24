@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, isNotNull } from "drizzle-orm";
 import { db } from "../../db/db";
 import { cardsTable } from "../../db/schema";
 import { Status } from "../packets";
@@ -6,11 +6,9 @@ import { prot } from "../server";
 
 export function get_stats_listener() {
   prot.listen("get_stats", async ({ data, answer }) => {
-    const start_date = data.start;
+    const start_date = new Date(data.start.toDateString());
 
-    const end_date = data.end;
-
-    console.log(start_date, end_date);
+    const end_date = new Date(data.end.toDateString());
 
     /*
     const cards = await db
@@ -25,12 +23,12 @@ export function get_stats_listener() {
         ...Array(
           Math.floor(
             (start_date.getTime() - end_date.getTime()) / (1000 * 60 * 60 * 24)
-          ) + 1
+          )
         ).keys(),
       ]
         .reverse()
-        .map(async (d) => {
-          console.log(
+        .map(
+          async (d) =>
             (
               await db
                 .select()
@@ -45,27 +43,8 @@ export function get_stats_listener() {
                     )
                   )
                 )
-            ).length,
-            new Date(
-              new Date(start_date.valueOf()).setDate(start_date.getDate() - d)
-            )
-          );
-          return (
-            await db
-              .select()
-              .from(cardsTable)
-              .where(
-                eq(
-                  cardsTable.first_translated_date,
-                  new Date(
-                    new Date(start_date.valueOf()).setDate(
-                      start_date.getDate() - d
-                    )
-                  )
-                )
-              )
-          ).length;
-        })
+            ).length
+        )
     );
 
     answer({
