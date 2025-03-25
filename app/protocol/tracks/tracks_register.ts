@@ -1,3 +1,4 @@
+import { commit_listener } from "./commit";
 import { get_file_listener } from "./get_file";
 import { get_info_listener } from "./get_info_listener";
 import { get_stats_listener } from "./get_stats";
@@ -10,6 +11,7 @@ export function register_tracks() {
   get_usr_listener();
   get_stats_listener();
   get_file_listener();
+  commit_listener();
 }
 
 console.log("up and runnin'");
