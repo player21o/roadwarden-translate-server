@@ -106,7 +106,7 @@ export const usersTable = pgTable("users", {
   id: text().primaryKey().notNull(),
   name: text().notNull(),
   avatar_url: text().notNull(),
-  permissions: jsonb().notNull().$type<[UserPermission, any?][]>().default([]),
+  permissions: jsonb().default([]).notNull().$type<[UserPermission, any?][]>(),
   //sessions: jsonb().$type<UserSession[]>().default([]),
 });
 

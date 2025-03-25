@@ -9,26 +9,22 @@ import { config } from "../../config";
 import crypto from "crypto";
 
 export function login_listener() {
-  prot.listen(
-    "login",
-    async ({ data, answer }, ws) => {
-      const user = await ws.getUser();
+  prot.listen("login", async ({ data, answer }, ws) => {
+    const user = await ws.getUser();
 
-      if (user != null) {
-        answer({ status: Status.failure }); //user is logged in, but we need user logged out
+    if (user != null) {
+      answer({ status: Status.failure }); //user is logged in, but we need user logged out
+    } else {
+      if (data.method == "session" && data.token != undefined) {
+        //if user logs with a session
+        answer(await login_through_session(data.token, ws));
+      } else if (data.method == "discord" && data.token != undefined) {
+        answer(await login_through_discord(data.token, ws));
       } else {
-        if (data.method == "session" && data.token != undefined) {
-          //if user logs with a session
-          answer(await login_through_session(data.token, ws));
-        } else if (data.method == "discord" && data.token != undefined) {
-          answer(await login_through_discord(data.token, ws));
-        } else {
-          answer({ status: Status.failure });
-        }
+        answer({ status: Status.failure });
       }
-    },
-    10
-  );
+    }
+  });
 }
 
 function get_session(token: string) {

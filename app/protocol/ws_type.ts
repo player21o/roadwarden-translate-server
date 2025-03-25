@@ -3,7 +3,7 @@ import { db } from "../db/db";
 import { usersSessionsTable, usersTable } from "../db/schema";
 import { eq } from "drizzle-orm";
 
-export type UserDBQuery = typeof usersTable.$inferInsert & {
+export type UserDBQuery = Required<typeof usersTable.$inferInsert> & {
   sessions: (typeof usersSessionsTable.$inferInsert)[];
 };
 

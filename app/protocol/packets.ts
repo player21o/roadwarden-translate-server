@@ -225,10 +225,19 @@ const GetFile = {
   }),
 };
 
+const Commit = {
+  request: z.object({
+    card_id: z.number(),
+    content: z.string(),
+  }),
+  response: Response,
+};
+
 export const tracks = {
   login: Login,
   get_info: GetInfo,
   get_user: GetUser,
   get_stats: GetStats,
   get_file: GetFile,
+  commit: Commit,
 };
