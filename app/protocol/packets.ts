@@ -222,6 +222,7 @@ const GetFile = {
   }),
   response: Response.extend({
     file: z.array(Card).optional(),
+    original_file: z.string().optional(),
   }),
 };
 
