@@ -2,6 +2,9 @@ import { WebSocket } from "ws";
 import { db } from "../db/db";
 import { usersSessionsTable, usersTable } from "../db/schema";
 import { eq } from "drizzle-orm";
+import { prot } from "./server";
+import { tracks } from "./packets";
+import { z } from "zod";
 
 export type UserDBQuery = Required<typeof usersTable.$inferInsert> & {
   sessions: (typeof usersSessionsTable.$inferInsert)[];
@@ -16,22 +19,6 @@ export class WsType {
   constructor(ws: WebSocket, ip: string) {
     this.ws = ws;
     this.ip = ip;
-  }
-
-  public get user() {
-    if (this.user_id !== null) {
-      return db
-        .select()
-        .from(usersTable)
-        .where(eq(usersTable.id, this.user_id))
-        .leftJoin(
-          usersSessionsTable,
-          eq(usersSessionsTable.user_id, usersTable.id)
-        )
-        .orderBy(usersTable.id);
-    } else {
-      return null;
-    }
   }
 
   public async getUser() {
@@ -59,5 +46,18 @@ export class WsType {
 
   public send(data: Uint8Array) {
     this.ws.send(data);
+  }
+
+  public send_packet<T extends keyof typeof tracks>(
+    track: T,
+    data: z.infer<(typeof tracks)[T]["response"]>
+  ) {
+    prot.send_full_packet(
+      {
+        packet: data,
+        req_id: Math.round(Math.random() * 10000),
+      },
+      this
+    );
   }
 }

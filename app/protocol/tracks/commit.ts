@@ -6,6 +6,8 @@ import { Status, UserPermission } from "../packets";
 
 export function commit_listener() {
   prot.listen("commit", async ({ data: { card_id, content }, answer }, ws) => {
+    //ws.send_packet('update', {})
+
     const user = await ws.getUser();
 
     if (user != null) {
