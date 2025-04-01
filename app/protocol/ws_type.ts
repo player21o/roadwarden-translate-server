@@ -38,7 +38,7 @@ export class WsType {
         query.sessions.push(users_sessions);
       });
 
-      return query;
+      return query_user;
     } else {
       return null;
     }
@@ -55,6 +55,7 @@ export class WsType {
     prot.send_full_packet(
       {
         packet: data,
+        track_id: track,
         req_id: Math.round(Math.random() * 10000),
       },
       this

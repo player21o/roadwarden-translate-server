@@ -1,6 +1,8 @@
 import { WebSocket, WebSocketServer } from "ws";
 import { Protocol } from "./protocol";
 import { WsType } from "./ws_type";
+import { tracks } from "./packets";
+import { z } from "zod";
 
 class ServerProtocol extends Protocol {
   private wss = new WebSocketServer({ port: 3000 });
@@ -42,6 +44,13 @@ class ServerProtocol extends Protocol {
         });
       }
     );
+  }
+
+  public broadcast<T extends keyof typeof tracks>(
+    track: T,
+    data: z.infer<(typeof tracks)[T]["response"]>
+  ) {
+    this.clients.forEach((ws) => ws.send_packet(track, data));
   }
 }
 

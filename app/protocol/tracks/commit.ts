@@ -19,7 +19,13 @@ export function commit_listener() {
       if (query[0] != undefined) {
         const card = query[0];
 
-        if (user.permissions.includes([UserPermission.file, card.file])) {
+        if (
+          user.permissions.filter(
+            (v) =>
+              v[0] == UserPermission.file &&
+              (v[1] == card.file || v[1] == "all")
+          ).length > 0
+        ) {
           await translate_card(card_id, content);
           answer({ status: Status.success });
         } else {
@@ -33,8 +39,12 @@ export function commit_listener() {
 }
 
 async function translate_card(id: number, content: string) {
-  await db
+  const query = await db
     .update(cardsTable)
     .set({ translation: content })
-    .where(eq(cardsTable.id, id));
+    .where(eq(cardsTable.id, id))
+    .returning();
+  console.log(content);
+
+  prot.broadcast("update", { type: "card", card: query[0]! });
 }
