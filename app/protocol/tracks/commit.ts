@@ -44,7 +44,6 @@ async function translate_card(id: number, content: string) {
     .set({ translation: content })
     .where(eq(cardsTable.id, id))
     .returning();
-  console.log(content);
 
   prot.broadcast("update", { type: "card", card: query[0]! });
 }
